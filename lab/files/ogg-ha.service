@@ -1,0 +1,16 @@
+[Unit]
+Description=Oracle GoldenGate HA controller (role-aware, DBFS)
+After=network-online.target oracle-db.service
+
+[Service]
+Type=simple
+ExecStart=/u01/app/oracle/ogg_ha/ogg-ha-controller.sh
+KillMode=process
+TimeoutStopSec=60
+Restart=always
+RestartSec=10
+StandardOutput=append:/u01/app/oracle/ogg_ha/ogg-ha.log
+StandardError=append:/u01/app/oracle/ogg_ha/ogg-ha.log
+
+[Install]
+WantedBy=multi-user.target
