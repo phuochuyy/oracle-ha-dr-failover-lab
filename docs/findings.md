@@ -70,3 +70,24 @@ actually stopped, so the `START` was ignored and EXTA stayed down (log: `OGG-062
 data from the Logmining server` while stopping, then `stopped normally`, no restart). Fix: poll
 `INFO EXTRACT` until `Status STOPPED`, then send `START`. Verified by toggling the parameter on and
 off — EXTA restarted both times.
+
+## F8
+
+**The FRA did not reclaim applied archived logs; the 10 GB standby FRA filled up twice.** With
+`ARCHIVELOG DELETION POLICY TO APPLIED ON ALL STANDBY` on both orcl3 and its standby,
+`V$RECOVERY_AREA_USAGE` still showed ~0–3 % of archived logs reclaimable, while `RMAN DELETE ARCHIVELOG
+ALL` deleted the same logs without warnings (no guaranteed restore point, GoldenGate capture not
+holding them). After heavy-redo performance tests the standby hit `ORA-19809`, redo transport stopped
+and FSFO became unsynchronized — a failover in that window would not have been zero data loss.
+**Root cause (found later):** `fast_start_mttr_target = 0` (and `log_checkpoint_interval = 0`) on
+the standby. With real-time apply the redo is applied in memory, but without incremental
+checkpoints media recovery almost never checkpoints the standby datafiles, so the logs stay
+`V$ARCHIVED_LOG.APPLIED = 'IN-MEMORY'` (19 logs / 3.7 GB with apply lag 0 s). RMAN and the FRA only
+treat a log as applied after that checkpoint → not reclaimable. Setting
+`fast_start_mttr_target = 300` turned all 19 into `APPLIED = YES` within 90 s and the next
+housekeeping run deleted them (stb3 FRA 5.9 → 2.3 GB). Set on the primary as well, so a future
+standby after a switchover behaves the same.
+Fix: [`arch-housekeeping.sh`](../lab/files/arch-housekeeping.sh) + systemd timer every 10 minutes on
+prm3 and stb3 (installed by `labctl.sh` `sync_node`). It only runs the policy-respecting RMAN delete,
+so logs not yet applied on the standby or still needed by GoldenGate stay. Log: `~oracle/arch-housekeeping.log`.
+First runs: prm3 FRA 10.7 → 8.0 GB, stb3 → 2.2 GB.
