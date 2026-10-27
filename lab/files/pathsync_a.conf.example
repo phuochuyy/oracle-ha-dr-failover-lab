@@ -1,0 +1,10 @@
+SELF_DEPLOY=GG_A
+SELF_ADDR_MAP=prm1:gg-a.rac prm2:gg-a.rac stb1:gg-a-stb.rac stb2:gg-a-stb.rac
+OUT_PATH=A2B
+OUT_TRAIL=ea
+IN_PATH=B2A
+IN_TRAIL=eb
+PEER_DEPLOY=GG_B
+PEER_ADDRS=prm3.rac stb3.rac
+OGG_USER=oggadmin
+OGG_PASSWORD=change-me

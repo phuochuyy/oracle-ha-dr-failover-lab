@@ -1,0 +1,54 @@
+### t0_baseline
+DB site A: rows from A:    81 | committed OK:    81 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:    83 | committed OK:    83 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:    81 | committed OK:    81 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:    83 | committed OK:    83 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=0 B=0
+RESULT: PASS
+
+### t1_switchover
+DB site A: rows from A:   205 | committed OK:   205 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:   235 | committed OK:   235 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:   205 | committed OK:   205 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:   235 | committed OK:   235 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=6 B=0
+RESULT: PASS
+
+### t2_switchback
+DB site A: rows from A:   308 | committed OK:   308 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:   361 | committed OK:   361 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:   308 | committed OK:   308 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:   361 | committed OK:   361 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=11 B=0
+RESULT: PASS
+
+### t3_failover
+DB site A: rows from A:   635 | committed OK:   635 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:  1963 | committed OK:  1963 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:   635 | committed OK:   635 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:  1963 | committed OK:  1963 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=12 B=0
+RESULT: PASS
+
+### t4_failover_prm1
+DB site A: rows from A:   872 | committed OK:   872 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:  2418 | committed OK:  2418 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:   872 | committed OK:   872 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:  2418 | committed OK:  2418 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=13 B=0
+RESULT: PASS
+
+### t5_failover_stb1
+DB site A: rows from A:  1288 | committed OK:  1288 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:  2954 | committed OK:  2954 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:  1288 | committed OK:  1288 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:  2954 | committed OK:  2954 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=14 B=0
+RESULT: PASS
+

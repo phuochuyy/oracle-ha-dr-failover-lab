@@ -1,0 +1,17 @@
+[Unit]
+Description=Oracle listener + database ORCL3
+After=network-online.target
+Before=ogg-ha.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=oracle
+Group=oinstall
+ExecStart=/u01/app/oracle/ogg_ha/oracle-db.sh start
+ExecStop=/u01/app/oracle/ogg_ha/oracle-db.sh stop
+TimeoutStartSec=600
+TimeoutStopSec=600
+
+[Install]
+WantedBy=multi-user.target

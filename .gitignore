@@ -1,0 +1,10 @@
+# credentials and key material
+lab.env
+*.key
+*.pem
+*.p12
+*.sso
+*.jks
+pki/
+wallet/
+lab/files/pathsync_*.conf
