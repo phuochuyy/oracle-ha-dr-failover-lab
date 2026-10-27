@@ -146,8 +146,12 @@ gg_hdl() {    # bật/tắt TRANLOGOPTIONS HANDLEDLFAILOVER của Extract region
     $SSH oracle@$n "grep -q '^TRANLOGOPTIONS HANDLEDLFAILOVER' $prm" || return
     $SSH oracle@$n "sed -i 's/^TRANLOGOPTIONS HANDLEDLFAILOVER/-- TRANLOGOPTIONS HANDLEDLFAILOVER/' $prm"
   fi
-  printf "CONNECT http://localhost:9100 DEPLOYMENT $d AS oggadmin PASSWORD $OGG_PASSWORD\nSTOP EXTRACT $e\nSTART EXTRACT $e\n" \
-    | $SSH oracle@$n "cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby >/dev/null 2>&1; rm -f /tmp/hdl.oby"
+  local c="CONNECT http://localhost:9100 DEPLOYMENT $d AS oggadmin PASSWORD $OGG_PASSWORD"
+  ggc() { printf "$c\n%s\n" "$1" | $SSH oracle@$n "cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby 2>&1; rm -f /tmp/hdl.oby"; }
+  ggc "STOP EXTRACT $e" >/dev/null
+  # STOP trả về trước khi Extract dừng hẳn; START gửi ngay lúc đó bị bỏ qua -> Extract nằm STOPPED
+  for i in $(seq 1 30); do ggc "INFO EXTRACT $e" | grep -q "Status STOPPED" && break; sleep 2; done
+  ggc "START EXTRACT $e" >/dev/null
 }
 
 gg_status() {
