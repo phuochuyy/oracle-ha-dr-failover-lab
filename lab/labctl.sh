@@ -57,7 +57,8 @@ vm_stop() {
   done
   for v in "$@"; do
     for i in $(seq 1 60); do running $v || break; sleep 5; done
-    running $v && { log "force off $v"; $VIRSH destroy "$v" >/dev/null; }
+    # if/fi, not "running && ...": a VM that is already off must not make the function return 1
+    if running $v; then log "force off $v"; $VIRSH destroy "$v" >/dev/null; fi
   done
 }
 
