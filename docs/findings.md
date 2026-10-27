@@ -61,3 +61,12 @@ while trail still held changes for it made REPA/REPB abend on restart (they re-r
 checkpoint and must resolve the table). Safe order, documented in
 [`tests/README.md`](../tests/README.md): stop workload → let both Replicats read past the last
 change → STOP Replicat → drop → START.
+
+## F7
+
+**Switching lab scenarios left Extract STOPPED.** `labctl.sh` toggles `HANDLEDLFAILOVER` by sending
+`STOP EXTRACT` and `START EXTRACT` in one AdminClient script. `STOP` returns before the Extract has
+actually stopped, so the `START` was ignored and EXTA stayed down (log: `OGG-06219 Unable to extract
+data from the Logmining server` while stopping, then `stopped normally`, no restart). Fix: poll
+`INFO EXTRACT` until `Status STOPPED`, then send `START`. Verified by toggling the parameter on and
+off — EXTA restarted both times.
