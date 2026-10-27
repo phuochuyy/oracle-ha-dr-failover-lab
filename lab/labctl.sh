@@ -88,9 +88,12 @@ sync_node() {
     $SSH root@$v "$G/crsctl modify res ora.crf -attr ENABLED=0 -init >/dev/null 2>&1; $G/crsctl stop res ora.crf -init >/dev/null 2>&1" &
   else
     $SCP $F/ogg-ha-controller.sh root@$v:$HA/ogg-ha-controller.sh.new
-    $SCP $F/ogg-ha.service $F/oracle-db.service root@$v:/etc/systemd/system/
+    $SCP $F/ogg-ha.service $F/oracle-db.service $F/arch-housekeeping.service $F/arch-housekeeping.timer root@$v:/etc/systemd/system/
+    $SCP $F/arch-housekeeping.sh root@$v:$HA/
+    $SSH root@$v "chown oracle:oinstall $HA/arch-housekeeping.sh; chmod 750 $HA/arch-housekeeping.sh" 2>/dev/null
     $SSH root@$v "systemctl daemon-reload; cd $HA; chown root:oinstall ogg-ha-controller.sh.new; chmod 750 ogg-ha-controller.sh.new
       cmp -s ogg-ha-controller.sh.new ogg-ha-controller.sh && rm -f ogg-ha-controller.sh.new || { mv -f ogg-ha-controller.sh.new ogg-ha-controller.sh; systemctl restart ogg-ha; }" 2>/dev/null
+    $SSH root@$v "systemctl enable --now arch-housekeeping.timer" >/dev/null 2>&1
   fi
 }
 

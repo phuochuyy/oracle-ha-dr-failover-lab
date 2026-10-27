@@ -70,3 +70,17 @@ actually stopped, so the `START` was ignored and EXTA stayed down (log: `OGG-062
 data from the Logmining server` while stopping, then `stopped normally`, no restart). Fix: poll
 `INFO EXTRACT` until `Status STOPPED`, then send `START`. Verified by toggling the parameter on and
 off — EXTA restarted both times.
+
+## F8
+
+**The FRA did not reclaim applied archived logs; the 10 GB standby FRA filled up twice.** With
+`ARCHIVELOG DELETION POLICY TO APPLIED ON ALL STANDBY` on both orcl3 and its standby,
+`V$RECOVERY_AREA_USAGE` still showed ~0–3 % of archived logs reclaimable, while `RMAN DELETE ARCHIVELOG
+ALL` deleted the same logs without warnings (no guaranteed restore point, GoldenGate capture not
+holding them). After heavy-redo performance tests the standby hit `ORA-19809`, redo transport stopped
+and FSFO became unsynchronized — a failover in that window would not have been zero data loss.
+Root cause of the missing automatic reclaim: not found yet.
+Fix: [`arch-housekeeping.sh`](../lab/files/arch-housekeeping.sh) + systemd timer every 10 minutes on
+prm3 and stb3 (installed by `labctl.sh` `sync_node`). It only runs the policy-respecting RMAN delete,
+so logs not yet applied on the standby or still needed by GoldenGate stay. Log: `~oracle/arch-housekeeping.log`.
+First runs: prm3 FRA 10.7 → 8.0 GB, stb3 → 2.2 GB.
