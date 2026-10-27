@@ -1,0 +1,7 @@
+[Unit]
+Description=Delete archived logs allowed by the RMAN deletion policy
+
+[Service]
+Type=oneshot
+User=oracle
+ExecStart=/u01/app/oracle/ogg_ha/arch-housekeeping.sh
