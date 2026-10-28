@@ -31,7 +31,7 @@ After each test I dump the rows of both databases and require every OK transacti
 ([`tests/verify.py`](tests/verify.py)). Raw evidence is in [`results/`](results/).
 
 **Why did GoldenGate not lose or duplicate data across the failover?** Three things:
-`TRANSLOGOPTIONS HANDLEDLFAILOVER` (Extract never ships redo the standby has not received, so the
+`TRANLOGOPTIONS HANDLEDLFAILOVER` (Extract never ships redo the standby has not received, so the
 other region can never be ahead of the new primary), the deployment lives in DBFS inside the
 protected database (checkpoints and trails fail over with the data), and Auto-CDR resolves any conflict
 on replay.
