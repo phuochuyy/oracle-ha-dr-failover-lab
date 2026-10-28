@@ -1,0 +1,115 @@
+00:43:47 == before
+
+Configuration - dg_orcl3
+
+  Protection Mode: MaxAvailability
+  Members:
+  orcl3     - Primary database
+    ORCL3_STB - (*) Physical standby database 
+      Warning: ORA-16854: apply lag could not be determined
+
+Fast-Start Failover: Enabled in Zero Data Loss Mode
+
+Configuration Status:
+WARNING   (status updated 56 seconds ago)
+
+transport lag +00 00:00:00
+apply lag +00 00:00:00
+Session altered.
+Table created.
+00:43:49 apply lag +00 00:00:00
+00:43:49 == 1. FSFO off
+00:43:50 == 2. convert to snapshot standby
+2026-10-29T00:43:49.940+07:00
+Converting database "ORCL3_STB" to a Snapshot Standby database, please wait...
+
+2026-10-29T00:43:54.254+07:00
+Database "ORCL3_STB" converted successfully
+
+2026-10-29T00:43:54.255+07:00
+00:43:54 converted after 4 s
+DATABASE_ROLE	 OPEN_MODE
+---------------- --------------------
+SNAPSHOT STANDBY READ WRITE
+NAME
+--------------------------------------------------------------------------------
+GFD	    MB
+--- ----------
+SNAPSHOT_STANDBY_REQUIRED_10/29/2026 00:43:49
+YES	   100
+alter pluggable database drillpdb open
+*
+ERROR at line 1:
+ORA-65019: pluggable database DRILLPDB already open
+Help: https://docs.oracle.com/error-help/db/ora-65019/
+00:43:55 == 3. write on the snapshot standby, and on the primary at the same time
+Session altered.
+1000 rows created.
+100 rows updated.
+Commit complete.
+Session altered.
+1 row created.
+Commit complete.
+Session altered.
+System altered.
+stb3: 1000 snapshot-drill rows, 0 primary rows
+prm3: 0 snapshot-drill rows, 1 primary rows
+transport lag +00 00:00:00
+apply lag +00 00:00:18
+00:44:07 == 4. convert back to physical standby
+2026-10-29T00:44:07.647+07:00
+Converting database "ORCL3_STB" to a Physical Standby database, please wait...
+
+2026-10-29T00:44:07.688+07:00
+Operation requires shut down of instance "ORCL3" on database "ORCL3_STB"
+Shutting down instance "ORCL3"...
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+2026-10-29T00:44:11.478+07:00
+Operation requires start up of instance "ORCL3" on database "ORCL3_STB"
+Starting instance "ORCL3"...
+ORACLE instance started.
+Database mounted.
+
+2026-10-29T00:44:15.796+07:00
+Continuing to convert database "ORCL3_STB" ...
+
+2026-10-29T00:44:28.047+07:00
+Database "ORCL3_STB" converted successfully
+
+2026-10-29T00:44:28.047+07:00
+00:44:28 converted back after 21 s
+Database altered.
+alter pluggable database all open read only
+*
+ERROR at line 1:
+ORA-65152: cannot bring datafile online
+Help: https://docs.oracle.com/error-help/db/ora-65152/
+DATABASE_ROLE	 OPEN_MODE
+---------------- --------------------
+PHYSICAL STANDBY READ ONLY
+RESTORE_POINTS
+--------------
+	     0
+00:44:49 apply lag +00 00:00:00
+stb3: 0 snapshot-drill rows, 1 primary rows
+FAIL (no output — PDB not open?)
+00:44:50 == 5. FSFO on, clean up
+
+Configuration - dg_orcl3
+
+  Protection Mode: MaxAvailability
+  Members:
+  orcl3     - Primary database
+    ORCL3_STB - (*) Physical standby database 
+
+Fast-Start Failover: Enabled in Zero Data Loss Mode
+
+Configuration Status:
+SUCCESS   (status updated 19 seconds ago)
+
+Session altered.
+Table dropped.
+PASS (5 tables, counts and checksums match)
