@@ -8,3 +8,5 @@ lab.env
 pki/
 wallet/
 lab/files/pathsync_*.conf
+# interview preparation notes: kept on my machine only
+INTERVIEW.md

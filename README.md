@@ -30,6 +30,20 @@ as committed is checked on **both** databases ([`tests/verify.py`](tests/verify.
 - Raw evidence: [`results/`](results/) (client logs, row dumps of both DBs, 5-second timelines).
   Details per test: [`docs/failover-test-report.md`](docs/failover-test-report.md).
 
+## Snapshot standby drill (Region B) — [`tests/snapshot_standby.sh`](tests/snapshot_standby.sh)
+
+| Step | Result |
+|------|--------|
+| FSFO off, `CONVERT DATABASE 'ORCL3_STB' TO SNAPSHOT STANDBY` | **4 s**, `SNAPSHOT STANDBY / READ WRITE`, guaranteed restore point created |
+| test on the snapshot standby: 1,000 rows inserted, 100 accounts updated; meanwhile 1 row committed on the primary | standby sees its 1,000 rows, **not** the primary's row: redo arrives (transport lag 0), it is not applied (apply lag 18 s) |
+| `CONVERT ... TO PHYSICAL STANDBY` (broker restarts the instance) | **21 s**, restore point gone; 1,000 test rows gone, the primary's row applied, apply lag 0, BANKDB checksums **PASS** (the update was discarded), FSFO back, `SUCCESS` |
+
+Logs: [`results/snapshot-standby.log`](results/snapshot-standby.log). First attempt
+([log](results/snapshot-standby-first-attempt.log)): the broker said `SUCCESS` while the just-started
+standby still had **5 h 53 min apply lag** (transport lag 0), so the converted standby did not have the
+test table yet — the script now waits for apply lag 0. After the conversion back the broker leaves the
+standby `MOUNTED`; the script reopens it read-only (PDB `PERF` excluded: `STANDBYS=NONE`).
+
 ## Architecture
 
 ```mermaid
