@@ -22,8 +22,7 @@ G=/u01/app/23.26.0/grid/bin
 HA=/u01/app/oracle/ogg_ha
 # Credentials come from lab.env at the repo root (see lab.env.example), never from the script.
 . "$(cd "$(dirname "$0")/.." && pwd)/lab.env" 2>/dev/null
-: "${DB_PASSWORD:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
-DGPW="$DB_PASSWORD"
+: "${DGADMIN_PASSWORD_A:?set in lab.env}" "${DGADMIN_PASSWORD_B:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
 
 log() { echo "[$(date +%T)] $*"; }
 running() { [ "$($VIRSH domstate "$1" 2>/dev/null | head -1)" = "running" ]; }
@@ -102,7 +101,11 @@ dg() {   # dg A|B lệnh...  (chạy dgmgrl trên node đang bật của region)
   local r=$1 host alias; shift
   if [ $r = A ]; then alias=orcl; for host in prm1 prm2 stb1 stb2; do running $host && break; done
   else alias=orcl3; for host in prm3 stb3; do running $host && break; done; fi
-  printf '%s;\n' "$@" | $SSH oracle@$host ". ~/.bash_profile >/dev/null 2>&1; dgmgrl -silent sys/$DGPW@$alias" 2>&1
+  # broker as C##DGADMIN (SYSDG only, security lab), password on stdin: "sys/<pw>" on the dgmgrl command
+  # line was visible in ps on the VM, and every SYS login tried SYSDG first and failed (ORA-01031)
+  local pw; [ $r = A ] && pw=$DGADMIN_PASSWORD_A || pw=$DGADMIN_PASSWORD_B
+  { printf 'connect c##dgadmin/"%s"@%s\n' "$pw" "$alias"; printf '%s;\n' "$@"; } \
+    | $SSH oracle@$host ". ~/.bash_profile >/dev/null 2>&1; dgmgrl -silent" 2>&1 | grep -v '^Connected to'
 }
 
 dg_isolate() {

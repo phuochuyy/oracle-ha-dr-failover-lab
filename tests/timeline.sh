@@ -1,7 +1,7 @@
 #!/bin/bash
 # Credentials come from lab.env at the repo root (see lab.env.example), never from the script.
 . "$(cd "$(dirname "$0")/.." && pwd)/lab.env" 2>/dev/null
-: "${DB_PASSWORD:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
+: "${DGADMIN_PASSWORD_A:?set in lab.env}" "${DGADMIN_PASSWORD_B:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
 # timeline.sh <outfile> <seconds>: mỗi 5s ghi trạng thái DB role / GG_A / path / workload
 out=$1 dur=${2:-900} end=$(( $(date +%s) + dur ))
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=3"
