@@ -61,7 +61,7 @@ flowchart LR
 | Path retarget | [`ogg-path-sync.py`](lab/files/ogg-path-sync.py): after a role change, re-points both distribution paths to the live peer |
 | Failover gap fix | [`ogg-fan-callout.sh`](lab/files/ogg-fan-callout.sh): FAN callout that starts GG after FSFO failover |
 
-More: [`docs/architecture.md`](docs/architecture.md).
+More: [`docs/architecture.md`](docs/architecture.md). Interview notes: [`INTERVIEW.md`](INTERVIEW.md).
 
 ## Problems found and fixed
 
