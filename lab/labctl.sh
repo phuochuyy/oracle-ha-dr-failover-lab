@@ -22,8 +22,7 @@ G=/u01/app/23.26.0/grid/bin
 HA=/u01/app/oracle/ogg_ha
 # Credentials come from lab.env at the repo root (see lab.env.example), never from the script.
 . "$(cd "$(dirname "$0")/.." && pwd)/lab.env" 2>/dev/null
-: "${DB_PASSWORD:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
-DGPW="$DB_PASSWORD"
+: "${DGADMIN_PASSWORD_A:?set in lab.env}" "${DGADMIN_PASSWORD_B:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
 
 log() { echo "[$(date +%T)] $*"; }
 running() { [ "$($VIRSH domstate "$1" 2>/dev/null | head -1)" = "running" ]; }
@@ -57,7 +56,8 @@ vm_stop() {
   done
   for v in "$@"; do
     for i in $(seq 1 60); do running $v || break; sleep 5; done
-    running $v && { log "force off $v"; $VIRSH destroy "$v" >/dev/null; }
+    # if/fi, not "running && ...": a VM that is already off must not make the function return 1
+    if running $v; then log "force off $v"; $VIRSH destroy "$v" >/dev/null; fi
   done
 }
 
@@ -87,9 +87,12 @@ sync_node() {
     $SSH root@$v "$G/crsctl modify res ora.crf -attr ENABLED=0 -init >/dev/null 2>&1; $G/crsctl stop res ora.crf -init >/dev/null 2>&1" &
   else
     $SCP $F/ogg-ha-controller.sh root@$v:$HA/ogg-ha-controller.sh.new
-    $SCP $F/ogg-ha.service $F/oracle-db.service root@$v:/etc/systemd/system/
+    $SCP $F/ogg-ha.service $F/oracle-db.service $F/arch-housekeeping.service $F/arch-housekeeping.timer root@$v:/etc/systemd/system/
+    $SCP $F/arch-housekeeping.sh root@$v:$HA/
+    $SSH root@$v "chown oracle:oinstall $HA/arch-housekeeping.sh; chmod 750 $HA/arch-housekeeping.sh" 2>/dev/null
     $SSH root@$v "systemctl daemon-reload; cd $HA; chown root:oinstall ogg-ha-controller.sh.new; chmod 750 ogg-ha-controller.sh.new
       cmp -s ogg-ha-controller.sh.new ogg-ha-controller.sh && rm -f ogg-ha-controller.sh.new || { mv -f ogg-ha-controller.sh.new ogg-ha-controller.sh; systemctl restart ogg-ha; }" 2>/dev/null
+    $SSH root@$v "systemctl enable --now arch-housekeeping.timer" >/dev/null 2>&1
   fi
 }
 
@@ -98,7 +101,11 @@ dg() {   # dg A|B lệnh...  (chạy dgmgrl trên node đang bật của region)
   local r=$1 host alias; shift
   if [ $r = A ]; then alias=orcl; for host in prm1 prm2 stb1 stb2; do running $host && break; done
   else alias=orcl3; for host in prm3 stb3; do running $host && break; done; fi
-  printf '%s;\n' "$@" | $SSH oracle@$host ". ~/.bash_profile >/dev/null 2>&1; dgmgrl -silent sys/$DGPW@$alias" 2>&1
+  # broker as C##DGADMIN (SYSDG only, security lab), password on stdin: "sys/<pw>" on the dgmgrl command
+  # line was visible in ps on the VM, and every SYS login tried SYSDG first and failed (ORA-01031)
+  local pw; [ $r = A ] && pw=$DGADMIN_PASSWORD_A || pw=$DGADMIN_PASSWORD_B
+  { printf 'connect c##dgadmin/"%s"@%s\n' "$pw" "$alias"; printf '%s;\n' "$@"; } \
+    | $SSH oracle@$host ". ~/.bash_profile >/dev/null 2>&1; dgmgrl -silent" 2>&1 | grep -v '^Connected to'
 }
 
 dg_isolate() {
@@ -146,8 +153,12 @@ gg_hdl() {    # bật/tắt TRANLOGOPTIONS HANDLEDLFAILOVER của Extract region
     $SSH oracle@$n "grep -q '^TRANLOGOPTIONS HANDLEDLFAILOVER' $prm" || return
     $SSH oracle@$n "sed -i 's/^TRANLOGOPTIONS HANDLEDLFAILOVER/-- TRANLOGOPTIONS HANDLEDLFAILOVER/' $prm"
   fi
-  printf "CONNECT http://localhost:9100 DEPLOYMENT $d AS oggadmin PASSWORD $OGG_PASSWORD\nSTOP EXTRACT $e\nSTART EXTRACT $e\n" \
-    | $SSH oracle@$n "cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby >/dev/null 2>&1; rm -f /tmp/hdl.oby"
+  local c="CONNECT http://localhost:9100 DEPLOYMENT $d AS oggadmin PASSWORD $OGG_PASSWORD"
+  ggc() { printf "$c\n%s\n" "$1" | $SSH oracle@$n "cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby 2>&1; rm -f /tmp/hdl.oby"; }
+  ggc "STOP EXTRACT $e" >/dev/null
+  # STOP trả về trước khi Extract dừng hẳn; START gửi ngay lúc đó bị bỏ qua -> Extract nằm STOPPED
+  for i in $(seq 1 30); do ggc "INFO EXTRACT $e" | grep -q "Status STOPPED" && break; sleep 2; done
+  ggc "START EXTRACT $e" >/dev/null
 }
 
 gg_status() {

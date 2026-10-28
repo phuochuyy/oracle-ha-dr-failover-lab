@@ -1,7 +1,7 @@
 #!/bin/bash
 # Credentials come from lab.env at the repo root (see lab.env.example), never from the script.
 . "$(cd "$(dirname "$0")/.." && pwd)/lab.env" 2>/dev/null
-: "${DB_PASSWORD:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
+: "${DGADMIN_PASSWORD_A:?set in lab.env}" "${DGADMIN_PASSWORD_B:?set in lab.env}" "${OGG_PASSWORD:?set in lab.env}" "${APP_PASSWORD:?set in lab.env}"
 # check.sh <tag>: tạm dừng workload, chờ GG hội tụ, lấy dữ liệu 2 site và chạy verify.py
 S=$(cd "$(dirname "$0")" && pwd)
 CA="(DESCRIPTION=(CONNECT_TIMEOUT=5)(RETRY_COUNT=3)(FAILOVER=on)(ADDRESS_LIST=(LOAD_BALANCE=off)(ADDRESS=(PROTOCOL=TCP)(HOST=prm-scan.rac)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=stb-scan.rac)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=ogg_a.rac)))"

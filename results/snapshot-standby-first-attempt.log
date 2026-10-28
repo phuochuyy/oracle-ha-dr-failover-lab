@@ -1,0 +1,127 @@
+00:41:58 == before
+
+Configuration - dg_orcl3
+
+  Protection Mode: MaxAvailability
+  Members:
+  orcl3     - Primary database
+    ORCL3_STB - (*) Physical standby database 
+
+Fast-Start Failover: Enabled in Zero Data Loss Mode
+
+Configuration Status:
+SUCCESS   (status updated 52 seconds ago)
+
+transport lag +00 00:00:00
+apply lag +00 05:53:47
+Session altered.
+Table created.
+00:41:59 == 1. FSFO off
+00:41:59 == 2. convert to snapshot standby
+2026-10-29T00:41:59.495+07:00
+Converting database "ORCL3_STB" to a Snapshot Standby database, please wait...
+
+2026-10-29T00:42:10.315+07:00
+Database "ORCL3_STB" converted successfully
+
+2026-10-29T00:42:10.316+07:00
+00:42:10 converted after 11 s
+DATABASE_ROLE	 OPEN_MODE
+---------------- --------------------
+SNAPSHOT STANDBY READ WRITE
+NAME
+--------------------------------------------------------------------------------
+GFD	    MB
+--- ----------
+SNAPSHOT_STANDBY_REQUIRED_10/29/2026 00:41:58
+YES	   100
+alter pluggable database drillpdb open
+*
+ERROR at line 1:
+ORA-65019: pluggable database DRILLPDB already open
+Help: https://docs.oracle.com/error-help/db/ora-65019/
+00:42:11 == 3. write on the snapshot standby, and on the primary at the same time
+Session altered.
+insert into bank.transfer_note (note) select 'snapshot-drill ' || level from dual connect by level <= 1000
+                 *
+ERROR at line 1:
+ORA-00942: table or view "BANK"."TRANSFER_NOTE" does not exist
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+100 rows updated.
+Commit complete.
+Session altered.
+1 row created.
+Commit complete.
+Session altered.
+System altered.
+select 'stb3: ' || (select count(*) from bank.transfer_note where note like 'snapshot-drill%') || ' snapshot-drill rows, ' || (select count(*) from bank.transfer_note where note = 'primary-during-snapshot') || ' primary rows' from dual
+                                              *
+ERROR at line 1:
+ORA-00942: table or view "BANK"."TRANSFER_NOTE" does not exist
+Help: https://docs.oracle.com/error-help/db/ora-00942/
+prm3: 0 snapshot-drill rows, 1 primary rows
+transport lag +00 00:00:00
+apply lag +00 05:54:12
+00:42:23 == 4. convert back to physical standby
+2026-10-29T00:42:23.091+07:00
+Converting database "ORCL3_STB" to a Physical Standby database, please wait...
+
+2026-10-29T00:42:23.137+07:00
+Operation requires shut down of instance "ORCL3" on database "ORCL3_STB"
+Shutting down instance "ORCL3"...
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+
+2026-10-29T00:42:32.341+07:00
+Operation requires start up of instance "ORCL3" on database "ORCL3_STB"
+Starting instance "ORCL3"...
+ORACLE instance started.
+Database mounted.
+
+2026-10-29T00:42:37.040+07:00
+Continuing to convert database "ORCL3_STB" ...
+
+2026-10-29T00:42:49.883+07:00
+Database "ORCL3_STB" converted successfully
+
+2026-10-29T00:42:49.883+07:00
+00:42:50 converted back after 27 s
+00:43:11 apply lag +00 00:00:00
+DATABASE_ROLE	 OPEN_MODE
+---------------- --------------------
+PHYSICAL STANDBY MOUNTED
+RESTORE_POINTS
+--------------
+	     0
+alter pluggable database drillpdb open read only
+*
+ERROR at line 1:
+ORA-01109: database not open
+Help: https://docs.oracle.com/error-help/db/ora-01109/
+select 'stb3: ' || (select count(*) from bank.transfer_note where note like 'snapshot-drill%') || ' snapshot-drill rows, ' || (select count(*) from bank.transfer_note where note = 'primary-during-snapshot') || ' primary rows' from dual
+                                              *
+ERROR at line 1:
+ORA-01219: Database or pluggable database not open. Queries allowed on fixed
+tables or views only.
+Help: https://docs.oracle.com/error-help/db/ora-01219/
+FAIL (no output — PDB not open?)
+00:43:13 == 5. FSFO on, clean up
+
+Configuration - dg_orcl3
+
+  Protection Mode: MaxAvailability
+  Members:
+  orcl3     - Primary database
+    Warning: ORA-16629: Database reports a different protection level from the protection mode.
+
+    ORCL3_STB - (*) Physical standby database 
+      Warning: ORA-16854: apply lag could not be determined
+
+Fast-Start Failover: Enabled in Zero Data Loss Mode
+
+Configuration Status:
+WARNING   (status updated 63 seconds ago)
+
+Session altered.
+Table dropped.
