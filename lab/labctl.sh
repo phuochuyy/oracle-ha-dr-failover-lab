@@ -154,7 +154,7 @@ gg_hdl() {    # bật/tắt TRANLOGOPTIONS HANDLEDLFAILOVER của Extract region
     $SSH oracle@$n "sed -i 's/^TRANLOGOPTIONS HANDLEDLFAILOVER/-- TRANLOGOPTIONS HANDLEDLFAILOVER/' $prm"
   fi
   local c="CONNECT http://localhost:9100 DEPLOYMENT $d AS oggadmin PASSWORD $OGG_PASSWORD"
-  ggc() { printf "$c\n%s\n" "$1" | $SSH oracle@$n "cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby 2>&1; rm -f /tmp/hdl.oby"; }
+  ggc() { printf "$c\n%s\n" "$1" | $SSH oracle@$n "umask 077; cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/hdl.oby"; }
   ggc "STOP EXTRACT $e" >/dev/null
   # STOP trả về trước khi Extract dừng hẳn; START gửi ngay lúc đó bị bỏ qua -> Extract nằm STOPPED
   for i in $(seq 1 30); do ggc "INFO EXTRACT $e" | grep -q "Status STOPPED" && break; sleep 2; done
@@ -166,7 +166,7 @@ gg_status() {
   for r in A B; do
     n=$(gg_node $r); [ -z "$n" ] && { echo "   GG_$r: không chạy"; continue; }
     printf "CONNECT http://localhost:9100 DEPLOYMENT GG_$r AS oggadmin PASSWORD $OGG_PASSWORD\nINFO ALL\nINFO DISTPATH ALL\n" \
-      | $SSH oracle@$n "cat > /tmp/st.oby; /u01/app/gg/bin/adminclient -O /tmp/st.oby 2>&1; rm -f /tmp/st.oby" \
+      | $SSH oracle@$n "umask 077; cat > /tmp/st.oby; /u01/app/gg/bin/adminclient -O /tmp/st.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/st.oby" \
       | grep -E "EXTRACT |REPLICAT |^ [A-Z0-9]+2[A-Z]" | sed "s/^/   GG_$r@$n  /"
   done
 }
