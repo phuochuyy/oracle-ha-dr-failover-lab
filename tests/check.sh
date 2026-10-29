@@ -25,6 +25,8 @@ for i in $(seq 1 30); do   # tối đa 5 phút
   cur="$(wc -l < $out/rows_A.txt) $(wc -l < $out/rows_B.txt)"
   read -r na nb <<< "$cur"; [ "$na" = "$nb" ] && [ "$cur" = "$prev" ] && break; prev=$cur; sleep 10
 done
+# a run on a fresh lab has no client logs yet (verify.py then failed on the missing file)
+ssh -o BatchMode=yes oracle@prm3 'touch /tmp/wl_A.log /tmp/wl_B.log'
 scp -q oracle@prm3:/tmp/wl_A.log oracle@prm3:/tmp/wl_B.log $out/
 python3 -I $S/verify.py $out/wl_A.log $out/wl_B.log $out/rows_A.txt $out/rows_B.txt; rc=$?
 [ -n "${2:-}" ] && wl_start $2      # check.sh <tag> <phase kế tiếp>: chạy lại workload
