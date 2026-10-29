@@ -156,7 +156,10 @@ Credentials are never stored in the repo: copy `lab.env.example` to `lab.env` (g
   only running node of the primary cluster (a full-site loss). Intra-cluster RAC node failover is
   not covered here.
 - Standby VMs at 5 GB swap heavily (~4 GB) when they take over as primary with GoldenGate.
-- Open: after the re-run's T4 (failover back to prm1, 12:43), CRS shows the XAG resource
-  `xag.GG_A.goldengate` as `STATE=ONLINE` but `INTERNAL_STATE=STOPPING`, still hours later
-  (`RESTART_COUNT=0`, `FAILURE_COUNT=0`, XAG checks keep running). Not yet known whether CRS would still
-  relocate GG_A on the next failure — to be checked before the next failover test.
+- Not covered: a failover of **Region B** (prm3 → stb3). Its broker/FSFO configuration exists (observer
+  obs-r2, snapshot standby drill), but every power-off test was on Region A; Region B was the other side of
+  Active-Active, writing throughout. Its client connect string lists prm3 only.
+- Corrected: an earlier note here said the XAG resource showed `INTERNAL_STATE=STOPPING` "since T4 (12:43)".
+  The CRS trace shows the state was set at 17:19:38, when the primary hung on a full `+FRA` and CRS stopped
+  the `ogg_a` service tree (see the backup lab's README); 12:43 was only the last state change before.
+  After the restart it is `STABLE`.
