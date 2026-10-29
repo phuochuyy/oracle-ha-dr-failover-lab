@@ -17,11 +17,11 @@ while [ $(date +%s) -lt $end ] && [ ! -f $out.stop ]; do
   gg="-"
   if [ -n "$gnode" ]; then
     gg=$(printf "CONNECT http://localhost:9100 DEPLOYMENT GG_A AS oggadmin PASSWORD ${OGG_PASSWORD}\nINFO ALL\nINFO DISTPATH ALL\n" \
-      | timeout 30 $SSH oracle@$gnode "cat > /tmp/tl.oby; /u01/app/gg/bin/adminclient -O /tmp/tl.oby 2>&1" \
+      | timeout 30 $SSH oracle@$gnode "umask 077; cat > /tmp/tl.oby; /u01/app/gg/bin/adminclient -O /tmp/tl.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/tl.oby" \
       | awk '/^EXTRACT|^REPLICAT/{printf "%s=%s ", $3, $2} /^ A2B/{printf "A2B=%s ", $2}')
   fi
   b2a=$(printf "CONNECT http://localhost:9100 DEPLOYMENT GG_B AS oggadmin PASSWORD ${OGG_PASSWORD}\nINFO DISTPATH B2A DETAIL\n" \
-      | timeout 30 $SSH oracle@prm3 "cat > /tmp/tl.oby; /u01/app/gg/bin/adminclient -O /tmp/tl.oby 2>&1" \
+      | timeout 30 $SSH oracle@prm3 "umask 077; cat > /tmp/tl.oby; /u01/app/gg/bin/adminclient -O /tmp/tl.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/tl.oby" \
       | awk '/Status:/{s=$2} /Target:/{sub(/.*wss:\/\//,""); sub(/:443.*/,""); t=$0} END{printf "B2A=%s->%s", s, t}')
   wa=$(timeout 10 $SSH oracle@prm3 'tail -n 1 /tmp/wl_A.log' 2>/dev/null | awk '{print $3"@"$4}')
   wb=$(timeout 10 $SSH oracle@prm3 'tail -n 1 /tmp/wl_B.log' 2>/dev/null | awk '{print $3"@"$4}')

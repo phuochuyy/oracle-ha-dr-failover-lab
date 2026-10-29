@@ -69,6 +69,23 @@ sync_node() {
     prm3|stb3)           r=B ;;
     *) return ;;
   esac
+  # one-time files for a node that was off during a credential change (files/pending/<node>/, mode 700):
+  # ogg_tns_wallet/ = new DBFS wallet, orapw* = password file (single-instance standby). Copied right after
+  # boot, before the database is open, then removed from the host.
+  if [ -d $F/pending/$v ]; then
+    if [ -d $F/pending/$v/ogg_tns_wallet ]; then
+      $SSH oracle@$v "rm -rf /u01/app/oracle/ogg_tns/wallet.new; mkdir -m 700 /u01/app/oracle/ogg_tns/wallet.new" &&
+        $SCP $F/pending/$v/ogg_tns_wallet/* oracle@$v:/u01/app/oracle/ogg_tns/wallet.new/ &&
+        $SSH oracle@$v "cd /u01/app/oracle/ogg_tns && chmod 600 wallet.new/* && rm -rf wallet.old && mv wallet wallet.old && mv wallet.new wallet && rm -rf wallet.old" &&
+        rm -rf $F/pending/$v/ogg_tns_wallet && log "$v: new DBFS wallet installed"
+    fi
+    for f in $F/pending/$v/orapw*; do
+      [ -f "$f" ] || continue
+      $SCP "$f" oracle@$v:/u01/app/oracle/product/23.26.0/dbhome_1/dbs/ &&
+        $SSH oracle@$v "chmod 640 /u01/app/oracle/product/23.26.0/dbhome_1/dbs/${f##*/}" && rm -f "$f" && log "$v: password file ${f##*/} installed"
+    done
+    rmdir $F/pending/$v 2>/dev/null
+  fi
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
   sed "s/^OGG_PASSWORD=.*/OGG_PASSWORD=$OGG_PASSWORD/" $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
     | $SSH oracle@$v "umask 077; cat > $HA/pathsync.conf"
@@ -154,7 +171,7 @@ gg_hdl() {    # bật/tắt TRANLOGOPTIONS HANDLEDLFAILOVER của Extract region
     $SSH oracle@$n "sed -i 's/^TRANLOGOPTIONS HANDLEDLFAILOVER/-- TRANLOGOPTIONS HANDLEDLFAILOVER/' $prm"
   fi
   local c="CONNECT http://localhost:9100 DEPLOYMENT $d AS oggadmin PASSWORD $OGG_PASSWORD"
-  ggc() { printf "$c\n%s\n" "$1" | $SSH oracle@$n "cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby 2>&1; rm -f /tmp/hdl.oby"; }
+  ggc() { printf "$c\n%s\n" "$1" | $SSH oracle@$n "umask 077; cat > /tmp/hdl.oby; /u01/app/gg/bin/adminclient -O /tmp/hdl.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/hdl.oby"; }
   ggc "STOP EXTRACT $e" >/dev/null
   # STOP trả về trước khi Extract dừng hẳn; START gửi ngay lúc đó bị bỏ qua -> Extract nằm STOPPED
   for i in $(seq 1 30); do ggc "INFO EXTRACT $e" | grep -q "Status STOPPED" && break; sleep 2; done
@@ -166,7 +183,7 @@ gg_status() {
   for r in A B; do
     n=$(gg_node $r); [ -z "$n" ] && { echo "   GG_$r: không chạy"; continue; }
     printf "CONNECT http://localhost:9100 DEPLOYMENT GG_$r AS oggadmin PASSWORD $OGG_PASSWORD\nINFO ALL\nINFO DISTPATH ALL\n" \
-      | $SSH oracle@$n "cat > /tmp/st.oby; /u01/app/gg/bin/adminclient -O /tmp/st.oby 2>&1; rm -f /tmp/st.oby" \
+      | $SSH oracle@$n "umask 077; cat > /tmp/st.oby; /u01/app/gg/bin/adminclient -O /tmp/st.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/st.oby" \
       | grep -E "EXTRACT |REPLICAT |^ [A-Z0-9]+2[A-Z]" | sed "s/^/   GG_$r@$n  /"
   done
 }
