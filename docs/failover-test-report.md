@@ -75,3 +75,34 @@ App outage ~20 s (5 failed attempts), GG_A back on prm1 at 15:59:22. 669 transac
 
 After each power-off test the failed node was started again; FSFO auto-reinstate turned it into a
 standby in ~3 min with no manual step. The lab was returned to `orcl` (prm1) primary by switchover.
+
+
+## Run 2 — after the security hardening (2026-10-29)
+
+TDE on ORCLPDB2 (`APP_DATA`), native network encryption required, GoldenGate `ENCRYPTTRAIL AES256`,
+observer and broker as `C##DGADMIN` (SYSDG). Timelines: `results/timelines/r2_tl_t{1,2,4,5}.txt`.
+
+**T5 — power-off of prm1** ([`r2_tl_t5.txt`](../results/timelines/r2_tl_t5.txt))
+
+| Time | Event |
+|------|-------|
+| 12:29:10 | `virsh destroy prm1`; transaction #260 committed in that second (present on both sites) |
+| 12:29:53 | stb1 `PRIMARY / MOUNTED` (+43 s) |
+| 12:30:01 | stb1 `READ WRITE` |
+| 12:30:22 | site A client writes succeed on stb1 (+72 s) |
+| 12:30:51 | GG_A started on stb1 (FAN callout), EXTA/REPA `ABENDED` |
+| 12:31:05 | EXTA + REPA `RUNNING` (HA profile restart) |
+| 12:31:30 | B2A re-pointed to `gg-a-stb.rac`, running — **2 min 20 s** |
+
+**T4 — power-off of stb1** ([`r2_tl_t4.txt`](../results/timelines/r2_tl_t4.txt))
+
+| Time | Event |
+|------|-------|
+| 12:42:10 | `virsh destroy stb1`; transaction #681 committed in that second (present on both sites) |
+| 12:42:54 | prm1 `PRIMARY / READ WRITE` (+44 s) |
+| 12:43:16 | site A client writes succeed on prm1 (+66 s) |
+| 12:43:27 | GG_A on prm1, EXTA/REPA `ABENDED` → 12:43:34 `RUNNING` |
+| 12:44:21 | B2A re-pointed to `gg-a.rac`, running — **2 min 11 s** |
+
+T1/T2 (switchover/switchback): app outage 24 s / 27 s, Active-Active back after 1 min 22 s / 1 min 53 s.
+All five checks: `RESULT: PASS`, 0 missing, 0 unexpected, both databases identical (1,862 rows per site).
