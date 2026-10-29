@@ -69,6 +69,23 @@ sync_node() {
     prm3|stb3)           r=B ;;
     *) return ;;
   esac
+  # one-time files for a node that was off during a credential change (files/pending/<node>/, mode 700):
+  # ogg_tns_wallet/ = new DBFS wallet, orapw* = password file (single-instance standby). Copied right after
+  # boot, before the database is open, then removed from the host.
+  if [ -d $F/pending/$v ]; then
+    if [ -d $F/pending/$v/ogg_tns_wallet ]; then
+      $SSH oracle@$v "rm -rf /u01/app/oracle/ogg_tns/wallet.new; mkdir -m 700 /u01/app/oracle/ogg_tns/wallet.new" &&
+        $SCP $F/pending/$v/ogg_tns_wallet/* oracle@$v:/u01/app/oracle/ogg_tns/wallet.new/ &&
+        $SSH oracle@$v "cd /u01/app/oracle/ogg_tns && chmod 600 wallet.new/* && rm -rf wallet.old && mv wallet wallet.old && mv wallet.new wallet && rm -rf wallet.old" &&
+        rm -rf $F/pending/$v/ogg_tns_wallet && log "$v: new DBFS wallet installed"
+    fi
+    for f in $F/pending/$v/orapw*; do
+      [ -f "$f" ] || continue
+      $SCP "$f" oracle@$v:/u01/app/oracle/product/23.26.0/dbhome_1/dbs/ &&
+        $SSH oracle@$v "chmod 640 /u01/app/oracle/product/23.26.0/dbhome_1/dbs/${f##*/}" && rm -f "$f" && log "$v: password file ${f##*/} installed"
+    done
+    rmdir $F/pending/$v 2>/dev/null
+  fi
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
   sed "s/^OGG_PASSWORD=.*/OGG_PASSWORD=$OGG_PASSWORD/" $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
     | $SSH oracle@$v "umask 077; cat > $HA/pathsync.conf"

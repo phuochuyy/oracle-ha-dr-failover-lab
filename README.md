@@ -130,3 +130,7 @@ Credentials are never stored in the repo: copy `lab.env.example` to `lab.env` (g
   only running node of the primary cluster (a full-site loss). Intra-cluster RAC node failover is
   not covered here.
 - Standby VMs at 5 GB swap heavily (~4 GB) when they take over as primary with GoldenGate.
+- Open: after the re-run's T4 (failover back to prm1, 12:43), CRS shows the XAG resource
+  `xag.GG_A.goldengate` as `STATE=ONLINE` but `INTERNAL_STATE=STOPPING`, still hours later
+  (`RESTART_COUNT=0`, `FAILURE_COUNT=0`, XAG checks keep running). Not yet known whether CRS would still
+  relocate GG_A on the next failure — to be checked before the next failover test.
