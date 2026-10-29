@@ -30,6 +30,28 @@ as committed is checked on **both** databases ([`tests/verify.py`](tests/verify.
 - Raw evidence: [`results/`](results/) (client logs, row dumps of both DBs, 5-second timelines).
   Details per test: [`docs/failover-test-report.md`](docs/failover-test-report.md).
 
+## Re-run after the security hardening (2026-10-29)
+
+Same harness, same 4 VMs (prm1, stb1, obs-r1 + prm3), after the
+[security lab](https://github.com/phuochuyy/oracle-security-compliance-lab) changed Region A: TDE (ORCLPDB2's
+`APP_DATA`, where `APP.TXN` lives), native network encryption required, GoldenGate trail encryption, observer
+and broker as a SYSDG-only user. Evidence: `results/raw/r2_*`, `results/timelines/r2_*`.
+
+| # | Scenario | Data loss | App write outage (Region A) | Active-Active fully back | 2026-10-27 | Result |
+|---|----------|-----------|-----------------------------|--------------------------|------------|--------|
+| 0 | Baseline | 0 / 64 | – | – | – | PASS |
+| 1 | Switchover prm1 → stb1 | 0 | 24 s | 1 min 22 s | ~25 s / ~1 min 45 s | PASS |
+| 2 | Switchback stb1 → prm1 | 0 | 27 s | 1 min 53 s | ~20 s / ~1 min 30 s | PASS |
+| 5 | **Power-off prm1**, FSFO → stb1 | 0 | 72 s (stb1 primary +43 s) | **2 min 20 s**, automatic | ~65 s / 1 min 54 s | PASS |
+| 4 | **Power-off stb1**, FSFO → prm1 | 0 | 66 s (prm1 primary +44 s) | **2 min 11 s**, automatic | ~67 s / 2 min 12 s | PASS |
+
+- **1,862 committed transactions, 0 lost**; in both power-off tests the transaction committed in the very
+  second of the power-off (#260, #681) is on both databases. Region B: 0 errors throughout.
+- FSFO auto-reinstated the old primary each time (141 s / 136 s after the VM was started again).
+- Database failover is unchanged (43–44 s); GoldenGate's restart after a failover took longer
+  (Extract/Replicat first `ABENDED`, restarted by the HA profile) — 2 min 11–20 s instead of 1 min 54 s.
+- The harness had a gap on a fresh lab: `check.sh` failed when no client log existed yet — fixed.
+
 ## Snapshot standby drill (Region B) — [`tests/snapshot_standby.sh`](tests/snapshot_standby.sh)
 
 | Step | Result |
