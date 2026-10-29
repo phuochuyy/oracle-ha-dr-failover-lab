@@ -150,6 +150,14 @@ docs/       architecture, test report, findings
 
 Credentials are never stored in the repo: copy `lab.env.example` to `lab.env` (git-ignored).
 
+## Configuration change 2026-10-30: `ARCHIVE_LAG_TARGET=1800` on orcl and orcl_stb
+
+A log switch at least every 30 min (MAA practice) — so an idle RAC still archives regularly and the
+standby, backups and capture never wait hours for a log to close (idle redo here is ~164 MB/h on 200 MB
+logs, i.e. a switch only every ~70 min). Set on the standby too, because the parameter acts on whichever
+database is primary. Not on orcl3 (Region B: performance and CDC labs). Same redo volume, more and smaller
+archived logs.
+
 ## Limitations
 
 - Host RAM (23 GB) allows one node per RAC cluster at a time, so the failure tests powered off the
