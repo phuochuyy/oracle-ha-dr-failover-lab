@@ -52,6 +52,32 @@ and broker as a SYSDG-only user. Evidence: `results/raw/r2_*`, `results/timeline
   (Extract/Replicat first `ABENDED`, restarted by the HA profile) — 2 min 11–20 s instead of 1 min 54 s.
 - The harness had a gap on a fresh lab: `check.sh` failed when no client log existed yet — fixed.
 
+## Run 3 — after the password rotation (2026-10-29 evening)
+
+Why: the shared lab password had been rotated (XAG, GoldenGate users and path credentials, DBFS wallets,
+`pathsync.conf`) — only a failover proves that the automatic recovery still works. Evidence:
+`results/raw/r3_*`, `results/timelines/r3_*`.
+
+| # | Scenario | Data loss | New primary open read-write | App writes again | Active-Active fully back | Result |
+|---|----------|-----------|-------------|------------------|--------------------------|--------|
+| 0 | Baseline | 0 | – | – | – | PASS |
+| 5 | **Power-off prm1**, FSFO → stb1 | 0 | +52 s | +72 s | **did not come back**: XAG on stb1 failed after its 300 s start timeout → fixed by hand, back at 14 min | PASS (data) |
+| 4 | **Power-off stb1**, FSFO → prm1 | 0 | +49 s | +76 s | **1 min 39 s**, automatic | PASS |
+| 5b | **Power-off prm1** again, after the fix | 0 | +52 s | +74 s | **1 min 49 s**, automatic | PASS |
+| 2 | Switchover back to prm1 | 0 | – | – | 2 min 1 s | PASS |
+
+- **2,535 committed transactions, 0 lost** across the four events; FSFO reinstated the old primary each
+  time (80 s, 200 s, 180 s after the VM was started).
+- **The finding — my own rotation missed a dependency:** XAG keeps the GoldenGate admin password **per
+  cluster**. I had updated it on the primary's cluster (prm1/prm2) but not on the standby's (stb1/stb2):
+  XAG's health check on stb1 returned `3` for 5 minutes (it returned `0` in the morning run), the start timed
+  out and CRS stopped DBFS again. `agctl modify goldengate GG_A --adminuser oggadmin` on stb1 → `0`
+  at once; the next failover to stb1 (5b) recovered by itself in 1 min 49 s.
+- The harness reused the previous run's client logs: `verify.py` compared the morning's 1,862 transactions
+  with an empty table (FAIL). The old logs are moved aside before a new run now (`/tmp/wl_prev_*`).
+- Before this run GoldenGate Extract on prm1 had been down for 40 min: see the backup lab's README
+  (archived logs it still needed were deleted; restored from backup).
+
 ## Snapshot standby drill (Region B) — [`tests/snapshot_standby.sh`](tests/snapshot_standby.sh)
 
 | Step | Result |
