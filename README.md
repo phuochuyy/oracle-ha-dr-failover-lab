@@ -1,7 +1,7 @@
 # Oracle HA/DR Failover Lab — RAC + Data Guard FSFO + GoldenGate Active-Active
 
 Self-built two-region Oracle high-availability / disaster-recovery lab on Linux KVM:
-two regions, each protected by Data Guard Fast-Start Failover, with GoldenGate 23ai Microservices
+two regions, each protected by Data Guard Fast-Start Failover, with GoldenGate 23.26 Microservices
 replicating **Active-Active** between the regions. The point of the project is not the install
 but the **proof**: failover tested under live bidirectional write load, every committed
 transaction reconciled on both sites.
@@ -114,7 +114,7 @@ flowchart LR
 
 | Component | Implementation |
 |-----------|----------------|
-| Database | Oracle 23ai (23.26) on Oracle Linux 9.8, CDB/PDB; GI 23ai, ASM |
+| Database | Oracle AI Database 26ai (23.26) on Oracle Linux 9.8, CDB/PDB; Grid Infrastructure 23.26, ASM |
 | Region A HA | 2-node RAC → 2-node RAC standby, Broker, MaxAvailability, FSFO Zero Data Loss, auto-reinstate |
 | Region B HA | Single instance → physical standby, Broker, FSFO (observer obs-r2) |
 | Replication | GoldenGate 23.26.1 MA, Integrated Extract + Parallel Replicat, Auto-CDR, loop prevention via tag `00` |
