@@ -1,0 +1,37 @@
+03:00:58 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:06 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:15 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:22 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:30 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: | B2A=killed->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:38 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: | B2A=killed->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:45 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@none: -| B2A=killed->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3
+03:01:52 | prm1:? stb1:PHYSICAL_STANDBY/CLOSED_BY_SWITCHOVER | GG_A@none: -| B2A=killed->gg-a-stb.rac | wlA=ERR@rc=1 wlB=OK@prm3
+03:02:00 | prm1:PRIMARY/READ_WRITE stb1:ERROR: | GG_A@none: -| B2A=killed->gg-a-stb.rac | wlA=ERR@rc=1 wlB=OK@prm3
+03:02:09 | prm1:PRIMARY/READ_WRITE stb1:select_database_role||'/'||open_mode_from_v$database | GG_A@none: -| B2A=killed->gg-a-stb.rac | wlA=ERR@rc=1 wlB=OK@prm3
+03:02:17 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/MOUNTED | GG_A@none: -| B2A=killed->gg-a-stb.rac | wlA=ERR@rc=1 wlB=OK@prm3
+03:02:25 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY | GG_A@none: -| B2A=killed->gg-a-stb.rac | wlA=OK@prm1 wlB=OK@prm3
+03:02:34 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY | GG_A@prm1: EXTA=RUNNING REPA=STOPPED A2B=running | B2A=killed->gg-a-stb.rac | wlA=OK@prm1 wlB=OK@prm3
+03:02:48 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=killed->gg-a-stb.rac | wlA=OK@prm1 wlB=OK@prm3
+03:02:59 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=killed->gg-a-stb.rac | wlA=OK@prm1 wlB=OK@prm3
+03:03:08 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:03:17 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:03:27 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:03:35 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:03:44 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:03:52 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:01 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:10 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:17 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:25 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:33 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:41 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:04:49 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:03 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:11 | prm1:PRIMARY/READ_WRITE stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@prm1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:17 | prm1:DOWN stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@none: -| B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:24 | prm1:DOWN stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@none: -| B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:31 | prm1:DOWN stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@none: -| B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:37 | prm1:DOWN stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@none: -| B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:44 | prm1:DOWN stb1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY | GG_A@none: -| B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:50 | prm1:DOWN stb1:? | GG_A@none: -| B2A=running->gg-a.rac | wlA=OK@prm1 wlB=OK@prm3
+03:05:58 | prm1:DOWN stb1:PRIMARY/READ_WRITE | GG_A@none: -| B2A=running->gg-a.rac | wlA=ERR@rc=124 wlB=OK@prm3

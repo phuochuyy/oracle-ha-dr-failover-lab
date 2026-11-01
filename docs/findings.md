@@ -91,3 +91,35 @@ Fix: [`arch-housekeeping.sh`](../lab/files/arch-housekeeping.sh) + systemd timer
 prm3 and stb3 (installed by `labctl.sh` `sync_node`). It only runs the policy-respecting RMAN delete,
 so logs not yet applied on the standby or still needed by GoldenGate stay. Log: `~oracle/arch-housekeeping.log`.
 First runs: prm3 FRA 10.7 → 8.0 GB, stb3 → 2.2 GB.
+
+## F9
+
+**The standby's block change tracking was reset at every lab stop.** The standby alert log had no
+`Shutting down ORACLE instance` line since the first days, and every start logged *"The change tracking
+file is not usable … not closed cleanly the last time it was shutdown. Resetting change tracking file."*
+`labctl.sh` stopped RAC nodes with `crsctl stop crs -f`, which aborted the instance. A level 1 offload
+taken after such a restart could not use change tracking (`V$BACKUP_DATAFILE.USED_CHANGE_TRACKING = NO`,
+78 % of the blocks read, 615 s against 760 s for the level 0). Fix: `vm_stop` now runs
+`srvctl stop instance -db <db> -node <node> -stopoption immediate -force` first, then stops CRS.
+Verified on stb1: `Shutting down ORACLE instance (immediate)`, and after the restart *"The change
+tracking file is current"* — no reset. (The primary resets only at role changes, as expected.)
+
+## F10
+
+**The lab clean-up deleted archived logs a GoldenGate capture still needed.** `vm-cleanup.sh` (used by
+`labctl.sh trim`) ran `DELETE ARCHIVELOG ALL COMPLETED BEFORE 'SYSDATE-1'`, assuming RMAN keeps logs
+a capture needs. For a per-PDB integrated capture it does not warn, and a capture's restart point can be
+days old (a transaction left open by an incident held it — see the backup lab). The step is removed;
+the FRA deletes logs under the deletion policy and orcl3 has its own housekeeping timer.
+
+## F11
+
+**After a credential rotation, nodes that were off locked two accounts.** A RAC node started outside
+`labctl.sh` still had the old DBFS wallet (the new one waits in `files/pending/<node>/` and is installed
+by `sync_node`): its `dbfs_client` failed 10 logons and locked `DBFS_USER` → DBFS returned I/O errors,
+GoldenGate could not start, and CRS hung stopping it. The cluster wallet `CVUDB` also still held the old
+`DBSNMP` password (and the standby cluster had none), which locked `DBSNMP`. Fix: unlocked both,
+installed the pending wallets on prm2, stb2 and stb3, updated `CVUDB` on the primary cluster (its owner
+is `oracle`) and created it on the standby cluster; a standby restart afterwards logged 0 `DBSNMP`
+failures. Rule: after rotating a password, list every node and wallet that holds it, including nodes
+that are switched off.

@@ -1,7 +1,7 @@
 # Oracle HA/DR Failover Lab — RAC + Data Guard FSFO + GoldenGate Active-Active
 
 Self-built two-region Oracle high-availability / disaster-recovery lab on Linux KVM:
-two regions, each protected by Data Guard Fast-Start Failover, with GoldenGate 23ai Microservices
+two regions, each protected by Data Guard Fast-Start Failover, with GoldenGate 23.26 Microservices
 replicating **Active-Active** between the regions. The point of the project is not the install
 but the **proof**: failover tested under live bidirectional write load, every committed
 transaction reconciled on both sites.
@@ -78,6 +78,26 @@ Why: the shared lab password had been rotated (XAG, GoldenGate users and path cr
 - Before this run GoldenGate Extract on prm1 had been down for 40 min: see the backup lab's README
   (archived logs it still needed were deleted; restored from backup).
 
+## Run 4 — rehearsal after the backup and security changes
+
+Same harness and procedure; goal: prove the automatic recovery still works after the later changes (backup
+fixes, password rotation, scripts reading passwords from stdin). Evidence: `results/raw/r4_*`,
+`results/timelines/r4_*`, summary [`results/r4-rehearsal-summary.md`](results/r4-rehearsal-summary.md).
+
+| # | Scenario | Data loss | New primary open read-write | App writes again | Active-Active fully back | Result |
+|---|----------|-----------|-----------------------------|------------------|--------------------------|--------|
+| 0 | Baseline | 0 | – | – | – | PASS |
+| 1 | Switchover prm1 → stb1 | 0 | – | 29 s without writes | 1 min 54 s | PASS |
+| 2 | Switchback stb1 → prm1 | 0 | – | – | 1 min 57 s | PASS |
+| 5 | **Power-off prm1**, FSFO → stb1 | 0 | +50 s | +78 s | **2 min 17 s**, automatic | PASS |
+| 4 | **Power-off stb1**, FSFO → prm1 | 0 | +43 s | +70 s | **1 min 32 s**, automatic | PASS |
+
+- **1,509 committed transactions, 0 lost**; the transaction committed in the very second of each power-off is on
+  both databases. FSFO reinstated the old primary 187 s / 137 s after the VM was started.
+- **Found before the run:** GoldenGate's capture restart point had not moved for three days — a transaction left open
+  by the Stuck Archiver incident (0 changes, unknown to the database) pinned it, so old archived logs could never be
+  released. `SHOWTRANS` → `SKIPTRANS`, then the restart point moved. Details in the summary.
+
 ## Snapshot standby drill (Region B) — [`tests/snapshot_standby.sh`](tests/snapshot_standby.sh)
 
 | Step | Result |
@@ -114,7 +134,7 @@ flowchart LR
 
 | Component | Implementation |
 |-----------|----------------|
-| Database | Oracle 23ai (23.26) on Oracle Linux 9.8, CDB/PDB; GI 23ai, ASM |
+| Database | Oracle AI Database 26ai (23.26) on Oracle Linux 9.8, CDB/PDB; Grid Infrastructure 23.26, ASM |
 | Region A HA | 2-node RAC → 2-node RAC standby, Broker, MaxAvailability, FSFO Zero Data Loss, auto-reinstate |
 | Region B HA | Single instance → physical standby, Broker, FSFO (observer obs-r2) |
 | Replication | GoldenGate 23.26.1 MA, Integrated Extract + Parallel Replicat, Auto-CDR, loop prevention via tag `00` |

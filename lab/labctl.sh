@@ -38,13 +38,18 @@ vm_start() {
 }
 
 vm_stop() {
-  local v
+  local v db
   for v in "$@"; do
     running $v || continue
     case $v in
       prm3|stb3)           $SSH root@$v 'systemctl stop ogg-ha oracle-db' 2>/dev/null ;;
       prm1|prm2|stb1|stb2)
-        # Phải dừng CRS hoàn toàn trước khi tắt OS; nếu không CSS chết đột ngột -> cssdagent reboot node.
+        # 1) Database instance first, shutdown immediate: "crsctl stop crs -f" alone aborted it, so the standby's
+        #    block change tracking was "not closed cleanly" and reset at every start (level 1 then read ~80 % of
+        #    the blocks). -force also stops the services/GoldenGate resources that depend on the instance.
+        case $v in prm*) db=orcl ;; *) db=orcl_stb ;; esac
+        $SSH oracle@$v ". ~/.bash_profile >/dev/null 2>&1; timeout 300 srvctl stop instance -db $db -node $v -stopoption immediate -force" >/dev/null 2>&1
+        # 2) Then CRS completely before the OS; otherwise CSS dies abruptly -> cssdagent reboots the node.
         # Dừng lỗi khi CRS đang khởi động dở -> thử lại đến khi OHAS dừng hẳn.
         for i in $(seq 1 10); do
           $SSH root@$v "timeout 300 $G/crsctl stop crs -f" >/dev/null 2>&1

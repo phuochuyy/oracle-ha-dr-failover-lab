@@ -38,14 +38,16 @@ rm -f /u01/app/oracle/product/23.26.0/dbhome_1/network/admin/*.bak.* 2>/dev/null
 # Bộ cài GoldenGate (đã cài xong trên mọi node; người dùng yêu cầu xóa)
 rm -f /home/oracle/V1054774-01.zip 2>/dev/null
 
-# Archivelog cũ hơn 1 ngày (RMAN giữ lại log mà standby/GoldenGate capture còn cần)
+# Archived logs are NOT deleted here any more. The old step ("delete archivelog all completed before
+# 'sysdate-1'") assumed RMAN keeps logs a GoldenGate capture still needs — it does not for a per-PDB capture
+# (EXTA abended after such a clean-up; its restart point was days old). The FRA deletes logs itself under the
+# deletion policy, and orcl3 has arch-housekeeping.timer. Only stale catalog entries are cleaned:
 sid=$(pgrep -a -f '^ora_pmon_' | awk '{print $2}' | sed 's/ora_pmon_//' | head -1)
 if [ -n "$sid" ]; then
   runuser -u oracle -- env ORACLE_HOME=/u01/app/oracle/product/23.26.0/dbhome_1 ORACLE_SID=$sid \
     /u01/app/oracle/product/23.26.0/dbhome_1/bin/rman target / >/dev/null 2>&1 <<'RMAN'
 crosscheck archivelog all;
 delete noprompt expired archivelog all;
-delete noprompt archivelog all completed before 'sysdate-1';
 RMAN
 fi
 
