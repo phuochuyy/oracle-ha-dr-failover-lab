@@ -10,7 +10,7 @@
 | stb3 | Region B standby `ORCL3_STB` | | 5 GB |
 | obs-r1, obs-r2 | FSFO observers (Region A / B) | | 1 GB |
 
-Oracle Linux 9.8 · Database / Grid Infrastructure 23ai (23.26) · GoldenGate 23.26.1 Microservices.
+Oracle Linux 9.8 · Oracle AI Database 26ai / Grid Infrastructure (23.26) · GoldenGate 23.26.1 Microservices.
 KVM/libvirt on one 23 GB host — [`lab/labctl.sh`](../lab/labctl.sh) starts only the VMs a scenario needs.
 
 ## Data Guard

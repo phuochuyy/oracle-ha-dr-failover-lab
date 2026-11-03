@@ -1,5 +1,6 @@
 #!/bin/bash
-# Workload Active-Active (runs on prm3): APP_PASSWORD=... wl.sh SITE "<connect descriptor>"
+# Workload Active-Active (runs on prm3): APP_PASSWORD (environment, set by check.sh over stdin) wl.sh SITE "<connect descriptor>"
+# The password never appears on a command line: sqlplus starts with /nolog and CONNECT comes on stdin.
 # Mỗi giây 1 transaction, kết nối mới mỗi lần (như client có retry). Log: /tmp/wl_SITE.log
 #   HH:MM:SS seq OK host phase   -> đã COMMIT thành công (phải có ở cả 2 site)
 #   HH:MM:SS seq ERR <lỗi>        -> không chắc chắn
@@ -8,8 +9,9 @@ site=$1 conn=$2 log=/tmp/wl_$1.log
 n=$(awk 'END{print $2+0}' $log 2>/dev/null); n=${n:-0}
 while [ ! -f /tmp/wl.stop ]; do
   n=$((n+1)); phase=$(cat /tmp/wl.phase 2>/dev/null || echo base)
-  out=$(timeout 40 sqlplus -s -L "app/${APP_PASSWORD:?}@$conn" <<SQL 2>&1
+  out=$(timeout 40 sqlplus -s -L /nolog <<SQL 2>&1
 whenever sqlerror exit failure
+connect app/"${APP_PASSWORD:?}"@$conn
 set heading off feedback off pages 0
 insert into app.txn(site,seq,phase) values ('$site',$n,'$phase');
 commit;

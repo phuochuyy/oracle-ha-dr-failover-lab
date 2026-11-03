@@ -1,0 +1,35 @@
+# VM log growth (prm1, stb1, stb2 running; GG_A on prm1)
+
+## Before
+prm1 /var/log: 1347 MB   stb1: 122 MB   stb2: 33 MB
+prm1 /var/log/secure (current)            213,341,032 bytes
+prm1 /var/log/secure-<last rotation>    1,124,924,239 bytes (uncompressed)
+prm1 lines in current secure by program: ServiceManager 101,781 · adminsrvr 16,363 · sshd-session 9,773 ·
+     distsrvr 6,723 · recvsrvr 4,774   (GoldenGate REST logging, ~198 lines/min)
+
+prm1# logrotate -d /etc/logrotate.conf 2>&1 | grep -iE "error|duplicate"
+error: rsyslog.bak.<date>:1 duplicate log entry for /var/log/cron
+error: rsyslog.bak.<date>:1 duplicate log entry for /var/log/maillog
+error: rsyslog.bak.<date>:1 duplicate log entry for /var/log/messages
+error: rsyslog.bak.<date>:1 duplicate log entry for /var/log/spooler
+error: found error in file rsyslog.bak.<date>, skipping
+error: secure:1 duplicate log entry for /var/log/secure
+error: found error in file secure, skipping
+error: secure.bak.<date>:1 duplicate log entry for /var/log/secure
+error: found error in file secure.bak.<date>, skipping
+fstrim.timer: disabled on prm1, stb1, stb2
+
+## labctl log_hygiene (prm1, stb1, stb2)
+prm1: logrotate errors=0, fstrim.timer=enabled, rsyslog=active
+stb1: logrotate errors=0, fstrim.timer=enabled, rsyslog=active
+stb2: logrotate errors=0, fstrim.timer=enabled, rsyslog=active
+prm1 /var/log/secure-<last rotation>.gz      34,801,235 bytes   (gzip of the 1,124,924,239-byte file)
+prm1 new GoldenGate lines go to /var/log/ogg-http.log; /var/log/secure keeps sshd / pam / su
+
+## fstrim -av (all three VMs), host free space and image allocation
+host free before: 2397 MB     after: 3680 MB   (+1283 MB)
+    -1105.4 MB  primary/node1/system.raw
+      +11.2 MB  shared/standby/fra/asm-fra.raw
+     -122.5 MB  standby/node1/system.raw
+      -66.3 MB  standby/node2/system.raw
+    -1283.0 MB total

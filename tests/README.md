@@ -9,7 +9,7 @@
 | `dg.sh`, `gg.sh` | host | run DGMGRL / AdminClient commands on a VM |
 | `sql/create_txn.sql`, `sql/drop_txn.sql` | each PDB | test table with Auto-CDR, and its cleanup |
 
-All scripts read credentials from `../lab.env`.
+All scripts read credentials from `../lab.env`. Passwords travel on stdin only (`sqlplus /nolog` + `CONNECT`, `ssh … 'bash -s'`), never on a command line — checked with 100 `ps` samples on prm3 ([`results/password-off-cmdline.txt`](../results/password-off-cmdline.txt)).
 
 ## Procedure
 

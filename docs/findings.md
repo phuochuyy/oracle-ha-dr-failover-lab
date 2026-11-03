@@ -91,3 +91,63 @@ Fix: [`arch-housekeeping.sh`](../lab/files/arch-housekeeping.sh) + systemd timer
 prm3 and stb3 (installed by `labctl.sh` `sync_node`). It only runs the policy-respecting RMAN delete,
 so logs not yet applied on the standby or still needed by GoldenGate stay. Log: `~oracle/arch-housekeeping.log`.
 First runs: prm3 FRA 10.7 → 8.0 GB, stb3 → 2.2 GB.
+
+## F9
+
+**The standby's block change tracking was reset at every lab stop.** The standby alert log had no
+`Shutting down ORACLE instance` line since the first days, and every start logged *"The change tracking
+file is not usable … not closed cleanly the last time it was shutdown. Resetting change tracking file."*
+`labctl.sh` stopped RAC nodes with `crsctl stop crs -f`, which aborted the instance. A level 1 offload
+taken after such a restart could not use change tracking (`V$BACKUP_DATAFILE.USED_CHANGE_TRACKING = NO`,
+78 % of the blocks read, 615 s against 760 s for the level 0). Fix: `vm_stop` now runs
+`srvctl stop instance -db <db> -node <node> -stopoption immediate -force` first, then stops CRS.
+Verified on stb1: `Shutting down ORACLE instance (immediate)`, and after the restart *"The change
+tracking file is current"* — no reset. (The primary resets only at role changes, as expected.)
+
+## F10
+
+**The lab clean-up deleted archived logs a GoldenGate capture still needed.** `vm-cleanup.sh` (used by
+`labctl.sh trim`) ran `DELETE ARCHIVELOG ALL COMPLETED BEFORE 'SYSDATE-1'`, assuming RMAN keeps logs
+a capture needs. For a per-PDB integrated capture it does not warn, and a capture's restart point can be
+days old (a transaction left open by an incident held it — see the backup lab). The step is removed;
+the FRA deletes logs under the deletion policy and orcl3 has its own housekeeping timer.
+
+## F11
+
+**After a credential rotation, nodes that were off locked two accounts.** A RAC node started outside
+`labctl.sh` still had the old DBFS wallet (the new one waits in `files/pending/<node>/` and is installed
+by `sync_node`): its `dbfs_client` failed 10 logons and locked `DBFS_USER` → DBFS returned I/O errors,
+GoldenGate could not start, and CRS hung stopping it. The cluster wallet `CVUDB` also still held the old
+`DBSNMP` password (and the standby cluster had none), which locked `DBSNMP`. Fix: unlocked both,
+installed the pending wallets on prm2, stb2 and stb3, updated `CVUDB` on the primary cluster (its owner
+is `oracle`) and created it on the standby cluster; a standby restart afterwards logged 0 `DBSNMP`
+failures. Rule: after rotating a password, list every node and wallet that holds it, including nodes
+that are switched off.
+
+## F12
+
+**The VMs' logs grew without limit, and every byte cost host disk.** The VM disks are sparse images on a
+host with little free space, so a growing log inside a VM is host space until `fstrim` returns it — and
+`fstrim.timer` was disabled. Two causes on the node running GoldenGate (prm1): (1) the Microservices
+(ServiceManager, adminsrvr, distsrvr, recvsrvr) log every REST request to `authpriv`, including the full
+JSON body of each 401 challenge — ~198 lines/min into `/var/log/secure`; (2) a daily, compressed rotation
+for `secure` had been set up, but the backup copies left in `/etc/logrotate.d` (`*.bak.*`) are parsed too:
+"duplicate log entry" → the real config was **skipped**, `secure` rotated weekly and uncompressed, one
+rotated file 1.1 GB. Fix (`log_hygiene` in `labctl.sh sync_node`, so every node gets it at its next start):
+GoldenGate lines to their own file `/var/log/ogg-http.log` (daily, 7 kept, max 100 MB, compressed), the
+backups moved out of `/etc/logrotate.d`, uncompressed rotated logs compressed (1,124,924,239 → 34,801,235
+bytes), `fstrim.timer` enabled. With `fstrim` on the three running VMs the host got back 1,283 MB
+([evidence](../results/maintenance/log-hygiene.txt)). Lesson: never leave a backup of a config inside a
+directory that is read as a whole (`*.d/`).
+
+## F13
+
+**Swap kept host space forever.** After F12 the host was still short of space. Each RAC node's image held
+3.3–3.4 GB more than its file systems used — the size of its swap LV: a swap block, once written, stays
+allocated in the sparse image, and `fstrim` does not touch swap. A one-off discard on stb2 freed 5.0 GB, and
+10 minutes of running took 1.1 GB back — so the fix is `discard` on the swap entries in `/etc/fstab` (whole
+area at `swapon`, freed pages while running and at shutdown), applied by `vm-swapdiscard.sh` from
+`log_hygiene` (and run once on the observers, which `sync_node` skips). All 8 VMs: host free space 6.7 → 29.0 GB;
+the boot-time discard checked on a VM where it was deferred ([evidence](../results/maintenance/swap-discard.txt)).
+My mistake on the way: I discarded the first swap LV with `blkdiscard`, which also wiped its header — `swapon`
+failed until `mkswap`. `swapon --discard` keeps the header.
