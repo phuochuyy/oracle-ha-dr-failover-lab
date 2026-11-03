@@ -161,3 +161,16 @@ happen. `sync_node` now runs `vm-nne.sh` on every Region A RAC node it starts: i
 `sqlnet.ora` from `files/nne-sqlnet.ora` when it differs (old file kept) and adds
 `ADMIN_RESTRICTIONS_LISTENER=ON`. prm1 unchanged; prm2 installed at boot, and a new connection through its
 listener landed on `orcl2` encrypted and checksummed ([evidence](../results/maintenance/nne-at-boot.txt)).
+
+## F15
+
+**The RAC primary did not start at boot — and GoldenGate waited for it.** F9 made `vm_stop` shut the instance down
+with `srvctl stop instance -stopoption immediate` (so block change tracking survives). `srvctl stop` sets the
+resource TARGET to OFFLINE, and `ora.orcl.db` has `AUTO_START=restore`: at the next boot CRS restored exactly that,
+so the database stayed down; the role-based service `ogg_a`, DBFS, the GoldenGate VIP and GG_A depend on it, and
+`labctl` sat in its wait loops. A single `srvctl start instance` brought all of them up. Fix: `vm_start` now starts
+the instance of every RAC node it boots (`db_start`, retried while CRS is still coming up, logged), and
+`gg_heal` at the end of every scenario checks that `ogg_a` runs on the current primary (asks the broker which one),
+that GG_B's admin/distribution/receiver servers are up, and starts any ABENDED Extract/Replicat — each action logged.
+My mistake on the way: the first `gg_heal` also required `pmsrvr`, which is not enabled in these deployments; it
+restarted a healthy GG_B and killed EXTB/REPB, which it then "healed" ([evidence](../results/maintenance/boot-selfheal.txt)).

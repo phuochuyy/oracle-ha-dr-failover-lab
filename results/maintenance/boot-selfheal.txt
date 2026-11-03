@@ -1,0 +1,22 @@
+# Cold boot of scenario dg-a after a labctl stop-all (instances stopped with srvctl ... -stopoption immediate)
+## CRS on prm1 two minutes after boot: database and everything above it OFFLINE / OFFLINE
+ora.orcl.db        OFFLINE OFFLINE (both instances)   AUTO_START=restore, MANAGEMENT_POLICY=AUTOMATIC
+ora.orcl.ogg_a.svc OFFLINE OFFLINE; dbfs_ogg, ogg_pathsync, xag.GG_A-vip, xag.GG_A.goldengate OFFLINE OFFLINE
+ora.orcl_stb.db    stb1 ONLINE (target ONLINE); stb2 OFFLINE (target OFFLINE, stopped by srvctl at 02:22)
+## after 'srvctl start instance -db orcl -node prm1' (02:48): ogg_a, dbfs_ogg, ogg_pathsync, GG_A VIP and GG_A all ONLINE on prm1 without anything else
+
+## labctl dg-a log (first version of gg_heal)
+[02:44:51] Region B: disable FSFO, TRANSPORT-OFF, HANDLEDLFAILOVER off
+[02:44:54] start VM prm1
+[02:44:55] start VM prm3
+[02:44:56] start VM stb1
+[02:44:57] start VM obs-r1
+[02:45:32] prm1: NNE sqlnet.ora ok, listener ok
+[02:45:38] stb1: NNE sqlnet.ora ok, listener ok
+[02:45:39] Region A: TRANSPORT-ON, APPLY-ON
+[02:48:22] Region A: enable FSFO, HANDLEDLFAILOVER on
+[02:50:59] GG_B: not all servers up after 2 min -> systemctl restart ogg-ha
+[02:51:57] GG_B: EXTB ABENDED -> START (cause: VIEW REPORT EXTB)
+[02:51:58] GG_B: REPB ABENDED -> START (cause: VIEW REPORT REPB)
+GG servers running afterwards on prm3 and on prm1: adminsrvr 1, distsrvr 1, recvsrvr 1, pmsrvr 0 (not enabled in these deployments)
+ggserr.log GG_B: EXTB/REPB started 02:46:11-13 (healthy), killed by the restart at 02:51, started again 02:52 by gg_heal
