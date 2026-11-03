@@ -1,0 +1,7 @@
+DB site A: rows from A:  1026 | committed OK:  1026 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:  4114 | committed OK:  4114 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:  1026 | committed OK:  1026 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:  4114 | committed OK:  4114 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 0 []
+ERR (client-side failed attempts): A=117 B=0
+RESULT: PASS

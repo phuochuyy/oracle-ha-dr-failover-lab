@@ -1,0 +1,28 @@
+18:27:30 virsh reset stb1 (primary hung: guest memory exhausted since ~18:01, vda reads 900-1500/s, ssh banner timeout)
+18:27:42 ssh stb1 back
+18:29:13 stb1 primary open read write
+18:37:36 virsh destroy stb1 (planned t4) -> no failover: prm1 FS_FAILOVER_STATUS=UNSYNCHRONIZED, observer not present; observer log since 18:29:55: 'Primary database cannot be reached' / 'target switch is pending'
+18:49:05 virsh start stb1 (restore the primary, no data loss path)
+18:50:46 stb1 PRIMARY/READ WRITE
+18:52:02 switchover to orcl (stb1 swapping 2.6 GB right after boot; observer stuck)
+18:53:11 switchover returned
+18:54:03 observer restarted (stop observer + start_observer.sh)
+18:54:57 old observer (pid 971, stuck since 18:29:55) killed, started again
+19:09:13 ogg_pathsync OFFLINE on prm1 (TARGET=OFFLINE after the node reboot, pullup without :always) -> crsctl start; B2A PATCH times out, adminclient on GG_B hangs -> systemctl restart ogg-ha on prm3
+--- evidence collected afterwards
+18:00:34 virsh start prm1 (after the t5 power-off) -> FSFO reinstate of prm1 begins
+18:01:10 first failed write on Region A (wl_A: ORA-12170), last OK 18:01:00 on stb1
+Nov  3 18:04:26 stb1 kernel: INFO: task distsrvr:63310 blocked for more than 122 seconds.
+Nov  3 18:04:46 stb1 kernel: INFO: task adminsrvr:63326 blocked for more than 122 seconds.
+Nov  3 18:04:46 stb1 kernel: INFO: task AIService:63323 blocked for more than 122 seconds.
+Nov  3 18:04:46 stb1 kernel: INFO: task extract:64103 blocked for more than 122 seconds.
+Nov  3 18:04:46 stb1 kernel: INFO: task replicat:64461 blocked for more than 122 seconds.
+Nov  3 18:04:46 stb1 kernel: INFO: task replicat:64460 blocked for more than 122 seconds.
+Nov  3 18:04:46 stb1 kernel: INFO: task adminclient:68834 blocked for more than 122 seconds.
+Nov  3 18:06:29 stb1 kernel: INFO: task distsrvr:63310 blocked for more than 245 seconds.
+Nov  3 18:06:32 stb1 kernel: INFO: task adminsrvr:63326 blocked for more than 245 seconds.
+Nov  3 18:06:42 stb1 kernel: INFO: task AIService:63323 blocked for more than 245 seconds.
+18:29:55 observer: 'Successfully reinstated database orcl' (then stuck: 'Primary database cannot be reached')
+18:29:59 Region A writes OK again (on stb1)
+after boot, as primary: stb1 MemTotal 4481 MB, HugePages 690 x 2 MB (in use), swap 2.6-3.6 GB used within minutes, 5017/5017 MB by 18:33
+19:10:10 B2A running -> gg-a.rac after the GG_B restart; 19:1x check r5_t6b PASS (A 883 + B 3,939 rows on both sites)
