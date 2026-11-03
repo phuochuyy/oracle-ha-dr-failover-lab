@@ -103,6 +103,10 @@ sync_node() {
     rmdir $F/pending/$v 2>/dev/null
   fi
   log_hygiene $v
+  # native network encryption on every Region A RAC node (prm2/stb2 were off when it was set by hand)
+  case $v in prm1|prm2|stb1|stb2)
+    $SCP $F/nne-sqlnet.ora root@$v:/tmp/nne-sqlnet.ora && log "$v: NNE $($SSH root@$v bash -s /tmp/nne-sqlnet.ora < $F/vm-nne.sh)" ;;
+  esac
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
   sed "s/^OGG_PASSWORD=.*/OGG_PASSWORD=$OGG_PASSWORD/" $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
     | $SSH oracle@$v "umask 077; cat > $HA/pathsync.conf"

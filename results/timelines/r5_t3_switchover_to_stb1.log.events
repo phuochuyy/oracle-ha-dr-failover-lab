@@ -1,0 +1,3 @@
+19:15:19 EVENT: ./dg.sh prm1 orcl switchover to orcl_stb
+19:16:32 EVENT command returned
+19:17:02 converged=yes : 19:17:01 | prm1:PHYSICAL_STANDBY/READ_ONLY_WITH_APPLY stb1:PRIMARY/READ_WRITE | GG_A@stb1: EXTA=RUNNING REPA=RUNNING A2B=running | B2A=running->gg-a-stb.rac | wlA=OK@stb1 wlB=OK@prm3

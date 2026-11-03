@@ -151,3 +151,13 @@ area at `swapon`, freed pages while running and at shutdown), applied by `vm-swa
 the boot-time discard checked on a VM where it was deferred ([evidence](../results/maintenance/swap-discard.txt)).
 My mistake on the way: I discarded the first swap LV with `blkdiscard`, which also wiped its header — `swapon`
 failed until `mkswap`. `swapon --discard` keeps the header.
+
+## F14
+
+**Network encryption missing on the nodes that were off.** Native network encryption (AES256 + SHA256
+REQUIRED) was set by hand on prm1 and stb1; prm2 and stb2 were off and kept no `sqlnet.ora`, so a client or
+a service relocated to them would have connected in clear. A "do this before they start" note had not made it
+happen. `sync_node` now runs `vm-nne.sh` on every Region A RAC node it starts: it installs the database-home
+`sqlnet.ora` from `files/nne-sqlnet.ora` when it differs (old file kept) and adds
+`ADMIN_RESTRICTIONS_LISTENER=ON`. prm1 unchanged; prm2 installed at boot, and a new connection through its
+listener landed on `orcl2` encrypted and checksummed ([evidence](../results/maintenance/nne-at-boot.txt)).

@@ -1,0 +1,12 @@
+# labctl rac: sync_node -> vm-nne.sh on each Region A RAC node it starts
+prm1: NNE sqlnet.ora ok, listener ok
+prm2: NNE sqlnet.ora installed, listener restricted (not running yet, read at start)
+
+# new connection through the prm2 listener (security lab 01_params_network.sh verify prm2 secpdb)
+orcl2
+TCP/IP NT Protocol Adapter for Linux: Version 23.26.1.0.0 - Production
+Encryption service for Linux: Version 23.26.1.0.0 - Production
+AES256 Encryption service adapter for Linux: Version 23.26.1.0.0 - Production
+Crypto-checksumming service for Linux: Version 23.26.1.0.0 - Production
+SHA256 Crypto-checksumming service adapter for Linux: Version 23.26.1.0.0 - Prod
+uction
