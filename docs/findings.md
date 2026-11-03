@@ -123,3 +123,31 @@ installed the pending wallets on prm2, stb2 and stb3, updated `CVUDB` on the pri
 is `oracle`) and created it on the standby cluster; a standby restart afterwards logged 0 `DBSNMP`
 failures. Rule: after rotating a password, list every node and wallet that holds it, including nodes
 that are switched off.
+
+## F12
+
+**The VMs' logs grew without limit, and every byte cost host disk.** The VM disks are sparse images on a
+host with little free space, so a growing log inside a VM is host space until `fstrim` returns it — and
+`fstrim.timer` was disabled. Two causes on the node running GoldenGate (prm1): (1) the Microservices
+(ServiceManager, adminsrvr, distsrvr, recvsrvr) log every REST request to `authpriv`, including the full
+JSON body of each 401 challenge — ~198 lines/min into `/var/log/secure`; (2) a daily, compressed rotation
+for `secure` had been set up, but the backup copies left in `/etc/logrotate.d` (`*.bak.*`) are parsed too:
+"duplicate log entry" → the real config was **skipped**, `secure` rotated weekly and uncompressed, one
+rotated file 1.1 GB. Fix (`log_hygiene` in `labctl.sh sync_node`, so every node gets it at its next start):
+GoldenGate lines to their own file `/var/log/ogg-http.log` (daily, 7 kept, max 100 MB, compressed), the
+backups moved out of `/etc/logrotate.d`, uncompressed rotated logs compressed (1,124,924,239 → 34,801,235
+bytes), `fstrim.timer` enabled. With `fstrim` on the three running VMs the host got back 1,283 MB
+([evidence](../results/maintenance/log-hygiene.txt)). Lesson: never leave a backup of a config inside a
+directory that is read as a whole (`*.d/`).
+
+## F13
+
+**Swap kept host space forever.** After F12 the host was still short of space. Each RAC node's image held
+3.3–3.4 GB more than its file systems used — the size of its swap LV: a swap block, once written, stays
+allocated in the sparse image, and `fstrim` does not touch swap. A one-off discard on stb2 freed 5.0 GB, and
+10 minutes of running took 1.1 GB back — so the fix is `discard` on the swap entries in `/etc/fstab` (whole
+area at `swapon`, freed pages while running and at shutdown), applied by `vm-swapdiscard.sh` from
+`log_hygiene` (and run once on the observers, which `sync_node` skips). All 8 VMs: host free space 6.7 → 29.0 GB;
+the boot-time discard checked on a VM where it was deferred ([evidence](../results/maintenance/swap-discard.txt)).
+My mistake on the way: I discarded the first swap LV with `blkdiscard`, which also wiped its header — `swapon`
+failed until `mkswap`. `swapon --discard` keeps the header.

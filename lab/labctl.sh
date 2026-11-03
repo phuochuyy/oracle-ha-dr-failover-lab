@@ -66,6 +66,17 @@ vm_stop() {
   done
 }
 
+# Host space used by the VMs (disk images are sparse: every new block costs host space): GoldenGate REST logging to its
+# own rotated file, stale logrotate backups out of /etc/logrotate.d, uncompressed rotated logs compressed, fstrim.timer,
+# swap with discard.
+log_hygiene() {
+  local v=$1
+  $SCP $F/ogg-syslog.conf root@$v:/etc/rsyslog.d/ogg-http.conf &&
+    $SCP $F/ogg-http.logrotate root@$v:/etc/logrotate.d/ogg-http &&
+    $SSH root@$v bash -s < $F/vm-loghygiene.sh
+  $SSH root@$v bash -s < $F/vm-swapdiscard.sh   # swap areas with discard (fstrim does not cover swap)
+}
+
 # Đồng bộ file cấu hình HA/GG (bản chuẩn nằm trong $F) sang node vừa bật
 sync_node() {
   local v=$1 r
@@ -91,6 +102,7 @@ sync_node() {
     done
     rmdir $F/pending/$v 2>/dev/null
   fi
+  log_hygiene $v
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
   sed "s/^OGG_PASSWORD=.*/OGG_PASSWORD=$OGG_PASSWORD/" $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
     | $SSH oracle@$v "umask 077; cat > $HA/pathsync.conf"

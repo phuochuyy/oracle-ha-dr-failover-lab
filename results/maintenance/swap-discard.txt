@@ -1,0 +1,35 @@
+# Swap discard on the 8 VMs (lab off; each VM started alone, vm-swapdiscard.sh, fstrim, stopped)
+
+## Why: host allocation vs what the file systems use (VM root + /boot, after fstrim)
+VM      image on host   guest root+boot used   difference   swap areas
+prm1        23.4 GB          20.1 GB             3.3 GB      LV 3.5 GB + /swapfile 1.4 GB
+prm2        21.7 GB          18.3 GB             3.4 GB      LV 3.5 GB + /swapfile 1.4 GB
+stb1        25.2 GB          21.9 GB             3.3 GB      LV 3.5 GB + /swapfile 1.4 GB
+stb2        21.2 GB          17.8 GB             3.4 GB      LV 3.5 GB + /swapfile 1.4 GB
+prm3        21.7 GB          20.2 GB             1.5 GB      LV 3.5 GB + /swapfile 2.0 GB
+obs-r1       5.5 GB           4.6 GB             0.9 GB      LV 1.0 GB
+fstab before: "/dev/mapper/ol-swap none swap defaults 0 0", "/swapfile none swap sw 0 0" (no discard)
+
+## First test on stb2, by hand (my mistake included)
+swapoff LV; blkdiscard LV -> "Discarded 3758096384 bytes"; swapon -> "read swap header failed"
+  (blkdiscard wiped the swap header) -> mkswap /dev/mapper/ol-swap; swapon --discard=once -> swap back, 5 GB
+image 21700 MB -> 16680 MB, host free 3586 MB -> 8606 MB
+then ~10 min running (CRS + standby) and a shutdown: image back to 17.8 GB (+1.1 GB) -> one-off discard is not
+enough, the swap entries need "discard"
+
+## vm-swapdiscard.sh on every VM (fstab "discard" + swapoff -a && swapon -a while swap is empty)
+VM      image before -> after     host free after   script output
+stb2    18245 MB -> 16976 MB        7956 MB         swap entries with discard 2/2, active 2/2, discarded now (was 0 MB used)
+obs-r1   5636 MB ->  4727 MB        8863 MB         1/1, active 1/1, discarded now
+obs-r2   5557 MB ->  5557 MB        8863 MB         1/1, active 1/1, not now (0 MB used, 326 MB available) - at next boot
+stb3    11254 MB -> 10587 MB        9519 MB         2/2, active 2/2, discarded now
+prm2    22196 MB -> 17151 MB       14553 MB         2/2, active 2/2, discarded now
+stb1    25758 MB -> 20988 MB       19317 MB         2/2, active 2/2, discarded now
+prm1    23936 MB -> 18920 MB       24323 MB         2/2, active 2/2, discarded now
+prm3    22218 MB -> 18477 MB       28046 MB         2/2, active 2/2, discarded now
+fstab after: "/dev/mapper/ol-swap none swap defaults,discard 0 0", "/swapfile none swap sw,discard 0 0"
+
+## Boot-time discard checked on obs-r2 (the one deferred above): next start, fstab only, then stop
+obs-r2   5557 MB ->  4648 MB       28954 MB
+
+host free: 6691 MB before -> 28954 MB after (+22263 MB)
