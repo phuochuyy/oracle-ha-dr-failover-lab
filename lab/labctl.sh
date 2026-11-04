@@ -35,6 +35,29 @@ vm_start() {
     for i in $(seq 1 60); do $SSH root@$v true 2>/dev/null && break; sleep 5; done
     sync_node $v
   done
+  db_start "$@"
+}
+
+db_start() {   # instance của các node RAC vừa bật
+  # vm_stop dừng instance bằng srvctl (shutdown immediate, F9) -> CRS đặt TARGET=OFFLINE; ora.<db>.db có
+  # AUTO_START=restore nên lúc boot CRS giữ nguyên OFFLINE: DB không tự lên (2026-11-04 02:47, primary orcl).
+  # Khi DB được srvctl start, service role-based (ogg_a) + DBFS + GG_A lên theo.
+  local v db pids=""
+  for v in "$@"; do
+    case $v in prm1|prm2) db=orcl ;; stb1|stb2) db=orcl_stb ;; *) continue ;; esac
+    running $v || continue
+    ( for i in $(seq 1 40); do   # CRS vừa boot còn đang lên: thử lại tới 10 phút
+        $SSH oracle@$v ". ~/.bash_profile >/dev/null 2>&1; srvctl status instance -db $db -node $v" 2>/dev/null \
+          | grep -q "is running" && exit 0
+        $SSH oracle@$v ". ~/.bash_profile >/dev/null 2>&1; srvctl start instance -db $db -node $v" >/dev/null 2>&1 \
+          && { log "$v: instance of $db started by labctl (CRS kept TARGET=OFFLINE from the last stop)"; exit 0; }
+        sleep 15
+      done
+      log "$v: instance of $db NOT running after 10 min — check CRS" ) &
+    pids="$pids $!"
+  done
+  [ -n "$pids" ] && wait $pids
+  return 0
 }
 
 vm_stop() {
@@ -165,6 +188,7 @@ dg_protect() {
   for i in $(seq 1 60); do dg $r "show configuration" | grep -q "^SUCCESS" && break; sleep 10; done
   log "Region $r: enable FSFO, HANDLEDLFAILOVER on"
   dg $r "enable fast_start failover" | grep -vE "^Connected|^$"
+  [ $r = A ] && ogg_svc_ensure   # nếu không, vòng chờ dưới treo 10 phút khi ogg_a không tự lên
   for i in $(seq 1 60); do [ -n "$(gg_node $r)" ] && break; sleep 10; done   # gg_hdl cần deployment đang chạy
   gg_hdl $r on
 }
@@ -209,6 +233,54 @@ gg_status() {
   done
 }
 
+# ---------------------------------------------------------------- tự sửa sau khi bật lab
+# Ba lỗi lặp lại sau boot, trước đây sửa tay mỗi lần (2026-11-03): service ogg_a không tự lên khi primary boot
+# lạnh (DBFS + GG_A chờ, labctl treo ở vòng chờ gg_node); GG_B ServiceManager chỉ dựng adminsrvr; Extract
+# ABENDED (ORA-03111 khi standby bật/tắt). Mỗi lần sửa đều ghi log, để không che lỗi.
+gga() {   # gga <A|B> <node> <lệnh adminclient>; mật khẩu qua stdin, file lệnh mode 600 và xóa ngay
+  printf "CONNECT http://localhost:9100 DEPLOYMENT GG_$1 AS oggadmin PASSWORD $OGG_PASSWORD\n%s\n" "$3" \
+    | $SSH oracle@$2 "umask 077; cat > /tmp/heal.oby; /u01/app/gg/bin/adminclient -O /tmp/heal.oby 2>&1 | sed -E 's/(PASSWORD )[^ ]+/\1********/'; rm -f /tmp/heal.oby"
+}
+
+ogg_svc_ensure() {   # service ogg_a (role PRIMARY) phải chạy trên primary hiện tại của Region A
+  local db nodes h i
+  db=$(dg A "show configuration" | awk '/- Primary database/ {print $1; exit}')
+  case $db in orcl) nodes="prm1 prm2" ;; orcl_stb) nodes="stb1 stb2" ;; *) return ;; esac
+  for h in $nodes; do running $h || continue
+    for i in $(seq 1 20); do   # DB vừa boot có thể chưa open: chờ tới khi service chạy hoặc start được
+      $SSH oracle@$h ". ~/.bash_profile >/dev/null 2>&1; srvctl status service -db $db -service ogg_a" 2>/dev/null \
+        | grep -q 'is running' && { [ $i -gt 1 ] && log "Region A: service ogg_a running on $db"; return; }
+      [ $i = 1 ] && log "Region A: service ogg_a not running on primary $db -> srvctl start"
+      $SSH oracle@$h ". ~/.bash_profile >/dev/null 2>&1; srvctl start service -db $db -service ogg_a" >/dev/null 2>&1
+      sleep 15
+    done
+    log "Region A: service ogg_a still not running on $db after 5 min — check CRS"; return
+  done
+}
+
+gg_heal() {
+  local r n p i ok
+  if running prm1 || running prm2 || running stb1 || running stb2; then ogg_svc_ensure; fi
+  if running prm3; then   # GG_B: admin, distribution and receiver servers up, else restart ogg-ha once
+    # pmsrvr (performance metrics) is not enabled in these deployments (also 0 on prm1): checking it restarted a
+    # healthy GG_B on 2026-11-04 02:51 and killed EXTB/REPB (ABENDED) — my mistake
+    ok=0; for i in $(seq 1 12); do
+      $SSH root@prm3 'for p in adminsrvr distsrvr recvsrvr; do pgrep -x $p >/dev/null || exit 1; done' && { ok=1; break; }
+      sleep 10; done
+    [ $ok = 1 ] || { log "GG_B: not all servers up after 2 min -> systemctl restart ogg-ha"; $SSH root@prm3 'systemctl restart ogg-ha'; sleep 45; }
+  fi
+  for r in A B; do
+    if [ $r = A ]; then running prm1 || running prm2 || running stb1 || running stb2 || continue
+    else running prm3 || running stb3 || continue; fi
+    n=""; for i in $(seq 1 30); do n=$(gg_node $r); [ -n "$n" ] && break; sleep 10; done
+    [ -z "$n" ] && { log "GG_$r: deployment not running after 5 min — check XAG / ogg-ha"; continue; }
+    for p in $(gga $r $n "INFO ALL" | awk '($1 == "EXTRACT" || $1 == "REPLICAT") && $2 == "ABENDED" {print $1 ":" $3}'); do
+      log "GG_$r: ${p#*:} ABENDED -> START (cause: VIEW REPORT ${p#*:})"
+      gga $r $n "START ${p%%:*} ${p#*:}" >/dev/null
+    done
+  done
+}
+
 status() {
   echo "== VMs"; $VIRSH list --all | sed '1,2d;/^$/d'
   for r in A B; do
@@ -224,21 +296,27 @@ case "${1:-status}" in
   gg)       vm_start prm1 prm3
             dg_isolate A; dg_isolate B
             vm_stop prm2 stb1 stb2 stb3 obs-r1 obs-r2
+            gg_heal
             status ;;
   dg-a)     dg_isolate B 2>/dev/null
             vm_stop prm2 stb2 stb3 obs-r2
             vm_start prm1 prm3 stb1 obs-r1
             dg_protect A
             $SSH root@stb1 bash -s < $F/crs_pathsync.sh >/dev/null 2>&1   # idempotent
+            gg_heal
             status ;;
   dg-b)     dg_isolate A 2>/dev/null
             vm_stop prm2 stb1 stb2 obs-r1
             vm_start prm1 prm3 stb3 obs-r2
-            dg_protect B
+            # LABCTL_NO_PROTECT=1: VMs only, transport stays off — e.g. to roll a far-behind stb3 forward with
+            # RECOVER STANDBY DATABASE FROM SERVICE instead of shipping the whole archived-log gap (host disk)
+            if [ "${LABCTL_NO_PROTECT:-0}" = 1 ]; then log "Region B: left isolated (LABCTL_NO_PROTECT=1)"; else dg_protect B; fi
+            gg_heal
             status ;;
   rac)      dg_isolate A 2>/dev/null; dg_isolate B 2>/dev/null
             vm_stop stb1 stb2 stb3 obs-r1 obs-r2
             vm_start prm1 prm2 prm3
+            gg_heal
             status ;;
   stop-all) dg_isolate A 2>/dev/null; dg_isolate B 2>/dev/null
             vm_stop obs-r1 obs-r2 stb1 stb2 stb3 prm3 prm2 prm1 ;;

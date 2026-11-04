@@ -1,0 +1,21 @@
+# Region B (orcl3 on prm3 -> ORCL3_STB on stb3) — first role change ever tested in Region B
+## before: stb3 two days behind (transport off), 68 archived logs / 3,669 MB
+- stb3 rolled forward with RECOVER STANDBY DATABASE FROM SERVICE orcl3 (backup repo 01-strategy/roll_forward_standby.sh):
+  SCN 34,554,335 -> 35,927,099, 30 datafiles / 17,726 MB = primary, 0 needing recovery
+- host cost: the standby's datafiles grew to the primary's size (UNDO 3.8 GB, BANK_DATA 3.3 GB), host free 10.3 -> 0.66 GB;
+  recovered by deleting 141 backed-up archived logs on prm3 below SCN 35,700,000 (below stb3, GG EXTB checkpoint and the
+  Debezium offset; FORCE needed: the deletion policy still saw them as not applied) + fstrim -> 9.1 GB
+- labctl dg-b: TRANSPORT-ON, APPLY-ON, FSFO Zero Data Loss, observer obs-r2: SUCCESS, stb3 SYNCHRONIZED, lag 0
+## switchover orcl3 -> ORCL3_STB
+- 1st attempt FAILED: ORA-16471 cannot convert switchover target to a primary database. Cause: the control file restored
+  from the primary named the online redo logs under /u02/redo2 and /u02/oradata/ORCL3/redo, which did not exist on stb3
+  (ORA-00313 / ORA-27037). prm3 was already a standby: Region B had no primary from 04:33:02 to 04:35:08.
+- fix: the two directories created on stb3; the same broker command again (ORA-16847 "a previous switchover failed"):
+  "Switchover succeeded, new primary is orcl3_stb" in 31 s
+- GoldenGate: GG_B (ogg-ha controller, role-aware, DBFS) stopped on prm3 and started on stb3 with DBFS mounted; the receiver
+  got trail ea from GG_A at 04:35:28 (path A2B re-pointed by ogg-path-sync); EXTB/REPB ABENDED for ~2 min (killed with the
+  old primary), restarted by their restart profile on their own
+- test rows: B->A arrived (latency not measured — my check loop failed on a tab); A->B 14 s
+## switchback ORCL3_STB -> orcl3
+- 16 s, no error; GG_B servers back on prm3 after 22 s, EXTB/REPB RUNNING ~1 min later
+- test rows: B->A 11 s, A->B 7 s (check loop polls every 2 s over ssh)

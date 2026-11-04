@@ -161,3 +161,29 @@ happen. `sync_node` now runs `vm-nne.sh` on every Region A RAC node it starts: i
 `sqlnet.ora` from `files/nne-sqlnet.ora` when it differs (old file kept) and adds
 `ADMIN_RESTRICTIONS_LISTENER=ON`. prm1 unchanged; prm2 installed at boot, and a new connection through its
 listener landed on `orcl2` encrypted and checksummed ([evidence](../results/maintenance/nne-at-boot.txt)).
+
+## F15
+
+**The RAC primary did not start at boot — and GoldenGate waited for it.** F9 made `vm_stop` shut the instance down
+with `srvctl stop instance -stopoption immediate` (so block change tracking survives). `srvctl stop` sets the
+resource TARGET to OFFLINE, and `ora.orcl.db` has `AUTO_START=restore`: at the next boot CRS restored exactly that,
+so the database stayed down; the role-based service `ogg_a`, DBFS, the GoldenGate VIP and GG_A depend on it, and
+`labctl` sat in its wait loops. A single `srvctl start instance` brought all of them up. Fix: `vm_start` now starts
+the instance of every RAC node it boots (`db_start`, retried while CRS is still coming up, logged), and
+`gg_heal` at the end of every scenario checks that `ogg_a` runs on the current primary (asks the broker which one),
+that GG_B's admin/distribution/receiver servers are up, and starts any ABENDED Extract/Replicat — each action logged.
+My mistake on the way: the first `gg_heal` also required `pmsrvr`, which is not enabled in these deployments; it
+restarted a healthy GG_B and killed EXTB/REPB, which it then "healed" ([evidence](../results/maintenance/boot-selfheal.txt)).
+Verified afterwards with cold boots of prm1 + prm3 and of stb1: `db_start` started the instance each time, and on prm1 everything above it came up, nothing by hand. Still unexplained: one earlier boot where CRS started the database itself and set `ogg_a` to target ONLINE, but never attempted to start it (crsd trace in the evidence file); `gg_heal` covers it if it comes back.
+
+## F16
+
+**Region B had never changed roles — and its standby could not become primary.** Every failover test ran in Region A;
+Region B's standby was two days behind with transport off. Rolled forward from the primary (`RECOVER STANDBY DATABASE
+FROM SERVICE`), protected again (FSFO Zero Data Loss), then a switchover: it **failed** with `ORA-16471` and left Region
+B without a primary for about 2 minutes. The control file restored from the primary named online redo log directories
+that exist only on prm3 (`/u02/redo2`, added there by a backup drill). Created on stb3, the broker completed the
+switchover (31 s). GoldenGate followed by itself: GG_B moved to stb3 with its DBFS, the path from Region A re-pointed,
+both directions replicated; switchback 16 s, rows both ways in 7–11 s ([evidence](../results/maintenance/region-b-switchover.txt)).
+Lesson: after restoring a standby control file from the primary, check that every file path it names exists on the
+standby — the database only notices at the role change. Not tested yet: an FSFO failover (power-off) in Region B.
