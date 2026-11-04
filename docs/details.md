@@ -1,6 +1,17 @@
 <!-- Full write-up, moved here from the repository's front page (README.md), which is now a short summary. -->
 # Oracle HA/DR Failover Lab — RAC + Data Guard FSFO + GoldenGate Active-Active
 
+## Summary of the runs
+
+| Run | Events | Committed transactions | Lost | What it showed |
+|-----|--------|------------------------|------|----------------|
+| 1 | switchover, switchback, 3 power-offs of the primary | 4,242 (cumulative) | **0** | GoldenGate did not restart after an automatic failover → FAN callout ([F1](findings.md#f1)); then back automatically in 1 min 54 s – 2 min 12 s |
+| 2 | after TDE, network encryption, SYSDG-only observer | 1,862 | **0** | same procedure on the hardened databases |
+| 3 | after rotating the shared GoldenGate password | 2,535 | **0** | XAG keeps that password per cluster |
+| 4 | rehearsal after the backup and security changes | 1,509 | **0** | [summary](../results/r4-rehearsal-summary.md) |
+| 5 | 2 switchovers, 2 power-offs, an out-of-memory primary in between | 6,629 | **0** | FSFO correctly refused to fail over to an unsynchronized target; fixed a CRS dependency of the path re-pointing ([summary](../results/r5-run-summary.md)) |
+
+
 Self-built two-region Oracle high-availability / disaster-recovery lab on Linux KVM:
 two regions, each protected by Data Guard Fast-Start Failover, with GoldenGate 23.26 Microservices
 replicating **Active-Active** between the regions. The point of the project is not the install
