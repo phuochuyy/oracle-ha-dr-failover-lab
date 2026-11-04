@@ -5,7 +5,7 @@
 # dg.sh <host> <alias> "<dgmgrl cmd>"...
 h=$1 a=$2; shift 2
 # as C##DGADMIN (SYSDG only), password on stdin; Region B aliases start with orcl3
-case $a in orcl3*) pw=$DGADMIN_PASSWORD_B ;; *) pw=$DGADMIN_PASSWORD_A ;; esac
+case ${a,,} in orcl3*) pw=$DGADMIN_PASSWORD_B ;; *) pw=$DGADMIN_PASSWORD_A ;; esac   # aliases are not case-sensitive: ORCL3_STB is Region B
 { printf 'connect c##dgadmin/"%s"@%s\n' "$pw" "$a"; printf '%s;\n' "$@"; } \
   | ssh -o BatchMode=yes oracle@$h ". ~/.bash_profile >/dev/null 2>&1; dgmgrl -silent" 2>&1 | grep -v '^Connected to'
 

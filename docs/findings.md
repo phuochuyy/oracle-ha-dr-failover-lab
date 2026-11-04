@@ -174,3 +174,16 @@ the instance of every RAC node it boots (`db_start`, retried while CRS is still 
 that GG_B's admin/distribution/receiver servers are up, and starts any ABENDED Extract/Replicat — each action logged.
 My mistake on the way: the first `gg_heal` also required `pmsrvr`, which is not enabled in these deployments; it
 restarted a healthy GG_B and killed EXTB/REPB, which it then "healed" ([evidence](../results/maintenance/boot-selfheal.txt)).
+Verified afterwards with cold boots of prm1 + prm3 and of stb1: `db_start` started the instance each time, and on prm1 everything above it came up, nothing by hand. Still unexplained: one earlier boot where CRS started the database itself and set `ogg_a` to target ONLINE, but never attempted to start it (crsd trace in the evidence file); `gg_heal` covers it if it comes back.
+
+## F16
+
+**Region B had never changed roles — and its standby could not become primary.** Every failover test ran in Region A;
+Region B's standby was two days behind with transport off. Rolled forward from the primary (`RECOVER STANDBY DATABASE
+FROM SERVICE`), protected again (FSFO Zero Data Loss), then a switchover: it **failed** with `ORA-16471` and left Region
+B without a primary for about 2 minutes. The control file restored from the primary named online redo log directories
+that exist only on prm3 (`/u02/redo2`, added there by a backup drill). Created on stb3, the broker completed the
+switchover (31 s). GoldenGate followed by itself: GG_B moved to stb3 with its DBFS, the path from Region A re-pointed,
+both directions replicated; switchback 16 s, rows both ways in 7–11 s ([evidence](../results/maintenance/region-b-switchover.txt)).
+Lesson: after restoring a standby control file from the primary, check that every file path it names exists on the
+standby — the database only notices at the role change. Not tested yet: an FSFO failover (power-off) in Region B.

@@ -308,7 +308,9 @@ case "${1:-status}" in
   dg-b)     dg_isolate A 2>/dev/null
             vm_stop prm2 stb1 stb2 obs-r1
             vm_start prm1 prm3 stb3 obs-r2
-            dg_protect B
+            # LABCTL_NO_PROTECT=1: VMs only, transport stays off — e.g. to roll a far-behind stb3 forward with
+            # RECOVER STANDBY DATABASE FROM SERVICE instead of shipping the whole archived-log gap (host disk)
+            if [ "${LABCTL_NO_PROTECT:-0}" = 1 ]; then log "Region B: left isolated (LABCTL_NO_PROTECT=1)"; else dg_protect B; fi
             gg_heal
             status ;;
   rac)      dg_isolate A 2>/dev/null; dg_isolate B 2>/dev/null
