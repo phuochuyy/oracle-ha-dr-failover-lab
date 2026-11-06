@@ -199,12 +199,12 @@ gets the host out of that state.
 
 ## F18
 
-**No VM's clock was synchronised, and nothing reported it.** `chrony.conf` on every VM pointed at a public NTP pool, but the
+**No VM's clock was synchronised, and the one warning went unread.** The cluster verification utility had been writing `PRVG-13606` (chrony not synchronised) to the CRS alert log; no check of ours looked there. `chrony.conf` on every VM pointed at a public NTP pool, but the
 VMs have no route to the internet: all sources at reach 0, `Leap status: Not synchronised`, clocks 0.6 s and 1.1 s behind the
 host on the two nodes measured. It matters here more than usual: GoldenGate conflict resolution picks the latest timestamp,
 and the timelines in this repository compare events across hosts. Fix: the KVM host serves NTP on the VM networks
 ([`host-ntp.sh`](../lab/files/host-ntp.sh), with `local stratum 10` so the VMs stay in step when the host is offline), and
 `sync_node` points each VM at its default gateway ([`vm-ntp.sh`](../lab/files/vm-ntp.sh)), observers included. Result: all four
 running VMs within 0.1 ms of their source and `cluvfy comp clocksync` passes
-([evidence](../results/maintenance/vm-ntp.txt)). The first run stepped each clock by under 1 s, on nodes with CRS already up;
-nothing in the cluster complained.
+([evidence](../results/maintenance/vm-ntp.txt)). At the first sync the clocks were 0.2 to 0.8 s off, below chrony's 1 s step limit, so it slewed them: no clock step in the
+`chronyd` journal on prm1.
