@@ -1,0 +1,7 @@
+DB site A: rows from A:  3459 | committed OK:  3459 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site A: rows from B:  3996 | committed OK:  3996 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+DB site B: rows from A:  2887 | committed OK:  3459 | missing: 572 [2908, 2909, 2910, 2911, 2912, 2913, 2914, 2915, 2916, 2917] | in-doubt present: 0 | unexpected: []
+DB site B: rows from B:  3996 | committed OK:  3996 | missing: 0 [] | in-doubt present: 0 | unexpected: []
+Site A vs Site B difference: 572 [('A', 2908), ('A', 2909), ('A', 2910), ('A', 2911), ('A', 2912), ('A', 2913), ('A', 2914), ('A', 2915), ('A', 2916), ('A', 2917)]
+ERR (client-side failed attempts): A=20 B=0
+RESULT: FAIL

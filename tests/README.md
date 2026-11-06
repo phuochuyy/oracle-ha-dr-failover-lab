@@ -9,6 +9,9 @@
 | `dg.sh`, `gg.sh` | host | run DGMGRL / AdminClient commands on a VM |
 | `gg_ping.sh [hostA] [hostB]` | host | one row each way through GoldenGate (insert, then delete); prints seconds, exit 0 only if everything arrived |
 | `sql/create_txn.sql`, `sql/drop_txn.sql` | each PDB | test table with Auto-CDR, and its cleanup |
+| `tac_setup.sh`, `tac_client.py`, `tac_compare.sh` | host | Application Continuity: two services, a client, and both clients through one event ([results](../results/app-continuity/README.md)) |
+| `r6.sh` | host | run 6, one stage per call, so each result is read before the next event |
+| `r6_extract_standby_down.sh` | host | what stops Extract with the standby down ([F21](../docs/findings.md#f21)) |
 
 All scripts read credentials from `../lab.env`. Passwords travel on stdin only (`sqlplus /nolog` + `CONNECT`, `ssh … 'bash -s'`), never on a command line — checked with 100 `ps` samples on prm3 ([`results/password-off-cmdline.txt`](../results/password-off-cmdline.txt)).
 
