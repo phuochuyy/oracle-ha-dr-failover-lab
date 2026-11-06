@@ -187,3 +187,12 @@ switchover (31 s). GoldenGate followed by itself: GG_B moved to stb3 with its DB
 both directions replicated; switchback 16 s, rows both ways in 7–11 s ([evidence](../results/maintenance/region-b-switchover.txt)).
 Lesson: after restoring a standby control file from the primary, check that every file path it names exists on the
 standby — the database only notices at the role change. Not tested yet: an FSFO failover (power-off) in Region B.
+
+## F17
+
+**Nothing stopped a scenario from starting on a nearly full host.** The rule "at least 12 GB free before starting" lived
+only in a document, and I broke it myself twice by starting scenarios at 5 GB on my own judgement. The VM images are
+thin-provisioned, so a full host pauses every VM with an I/O error (it happened once, when a standby pulled a redo gap).
+Fix: `labctl.sh` runs `require_disk` before `gg`, `dg-a`, `dg-b`, `rac` and refuses with exit code 3 below the limit;
+going below it takes an explicit `LAB_MIN_FREE_GB=<n>`. `status`, `stop-all` and `trim` are not blocked, because they are what
+gets the host out of that state.
