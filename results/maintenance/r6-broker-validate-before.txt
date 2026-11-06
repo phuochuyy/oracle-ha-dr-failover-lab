@@ -1,0 +1,193 @@
+# Broker validation, Region A, before any change (prm1 primary, stb1 standby, prm2 and stb2 off)
+
+  Database Role:    Primary database
+
+  Ready for Switchover:  Yes
+
+  Managed by Clusterware:
+    orcl:  YES            
+
+
+  Database Role:     Physical standby database
+  Primary Database:  orcl
+
+  Ready for Switchover:  Yes
+  Ready for Failover:    Yes (Primary Running)
+
+  Managed by Clusterware:
+    orcl    :  YES            
+    orcl_stb:  YES            
+
+  Parameter Settings:
+    Parameter                       orcl Value               orcl_stb Value
+    DB_BLOCK_CHECKING               FALSE                    FALSE
+    DB_BLOCK_CHECKSUM               TYPICAL                  TYPICAL
+    DB_LOST_WRITE_PROTECT           AUTO                     AUTO
+
+
+  Database Role:     Physical standby database
+  Primary Database:  orcl
+
+  Ready for Switchover:  Yes
+  Ready for Failover:    Yes (Primary Running)
+
+  Flashback Database Status:
+    Database  Status           Retention Target
+    orcl      On               240    
+    orcl_stb  On               360    
+
+  Force Logging Status:
+    Database  Status           Nonlogged Blocks
+    orcl      On               0               
+    orcl_stb  On               0               
+
+  Capacity Information:
+    Database  Instances        Threads        
+    orcl      1                2              
+    orcl_stb  1                2              
+
+  Managed by Clusterware:
+    orcl    :  YES            
+    orcl_stb:  YES            
+
+  Temporary Tablespace File Information:
+    orcl Temp Files:      6
+    orcl_stb Temp Files:  6
+
+  Data file Online Move in Progress:
+    orcl:      No
+    orcl_stb:  No
+
+  Standby Apply-Related Information:
+    Apply State:      Running
+    Apply Lag:        0 seconds (computed 0 seconds ago)
+    Apply Delay:      0 minutes
+
+  Transport-Related Information:
+    Transport On:  Yes
+    Gap Status:    No Gap
+    Transport Lag:  0 seconds (computed 0 seconds ago)
+    Transport Status:  Success
+
+  Log Files Cleared:
+    orcl Standby Redo Log Files:      Cleared
+    orcl_stb Online Redo Log Files:   Cleared
+    orcl_stb Standby Redo Log Files:  Available
+
+  Current Log File Groups Configuration:
+    Thread #  Online Redo Log Groups  Standby Redo Log Groups 
+              (orcl)                  (orcl_stb)              
+    1         2                       3                       
+    2         2                       3                       
+
+  Future Log File Groups Configuration:
+    Thread #  Online Redo Log Groups  Standby Redo Log Groups 
+              (orcl_stb)              (orcl)                  
+    1         2                       3                       
+    2         2                       3                       
+
+  Current Configuration Log File Sizes:
+    Thread #   Smallest Online Redo      Smallest Standby Redo    
+               Log File Size             Log File Size            
+               (orcl)                    (orcl_stb)               
+    1          200 MBytes                200 MBytes               
+    2          200 MBytes                200 MBytes               
+
+  Future Configuration Log File Sizes:
+    Thread #   Smallest Online Redo      Smallest Standby Redo    
+               Log File Size             Log File Size            
+               (orcl_stb)                (orcl)                   
+    1          200 MBytes                200 MBytes               
+    2          200 MBytes                200 MBytes               
+
+  Apply-Related Property Settings:
+    Property                        orcl Value               orcl_stb Value
+    DelayMins                       0                        0
+    ApplyParallel                   AUTO                     AUTO
+    ApplyInstances                  0                        0
+
+  Transport-Related Property Settings:
+    Property                        orcl Value               orcl_stb Value
+    LogShipping                     ON                       ON
+    LogXptMode                      SYNC                     SYNC
+    Dependency                      <empty>                  <empty>
+    Binding                         OPTIONAL                 OPTIONAL
+    MaxFailure                      0                        0
+    ReopenSecs                      300                      300
+    NetTimeout                      30                       30
+    RedoCompression                 DISABLE                  DISABLE
+
+  Parameter Settings:
+    Parameter                       orcl Value               orcl_stb Value
+    DB_BLOCK_CHECKING               FALSE                    FALSE
+    DB_BLOCK_CHECKSUM               TYPICAL                  TYPICAL
+    DB_LOST_WRITE_PROTECT           AUTO                     AUTO
+
+  Fast-Start Failover:  Enabled in Zero Data Loss Mode
+  Protection Mode:      MaxAvailability
+  Primary:              orcl
+  Active Target:        orcl_stb
+
+Other issues:
+  Fast-start failover threshold may be too low for RAC databases.
+Validating at "orcl"
+  Instance "orcl1": failed to connect to instance "orcl_stb2" on member "orcl_stb"
+    'orcl_stb' translates to:
+        (DESCRIPTION= (ADDRESS= (PROTOCOL= TCP) (HOST= stb-scan) (PORT= 1521)) (CONNECT_DATA= (SERVER= DEDICATED) (SERVICE_NAME= orcl_stb.rac) (UR=A)))
+
+    Environment Variables:
+               TNS_ADMIN: 
+             ORACLE_HOME: /u01/app/oracle/product/23.26.0/dbhome_1
+             ORACLE_BASE: 
+               GRID_HOME: 
+
+    Initialization Parameters:
+          LOCAL_LISTENER:  (ADDRESS=(PROTOCOL=TCP)(HOST=192.168.104.12)(PORT=1521))
+         REMOTE_LISTENER:  prm-scan:1521
+
+  Instance "orcl1": successfully connected to instance "orcl_stb1" on member "orcl_stb"
+  Failed to connect to instance "orcl2"
+
+Validating at "orcl_stb"
+  Failed to connect to instance "orcl_stb2"
+  Instance "orcl_stb1": successfully connected to instance "orcl1" on member "orcl"
+  Instance "orcl_stb1": failed to connect to instance "orcl2" on member "orcl"
+    'orcl' translates to:
+        (DESCRIPTION= (ADDRESS= (PROTOCOL= TCP) (HOST= prm-scan) (PORT= 1521)) (CONNECT_DATA= (SERVER= DEDICATED) (SERVICE_NAME= orcl.rac)))
+
+    Environment Variables:
+               TNS_ADMIN: 
+             ORACLE_HOME: /u01/app/oracle/product/23.26.0/dbhome_1
+             ORACLE_BASE: 
+               GRID_HOME: 
+
+    Initialization Parameters:
+          LOCAL_LISTENER:  (ADDRESS=(PROTOCOL=TCP)(HOST=192.168.105.12)(PORT=1521))
+         REMOTE_LISTENER: stb-scan:1521
+
+
+
+Oracle Clusterware on database "orcl" is available for database restart.
+
+Oracle Clusterware on database "orcl_stb" is available for database restart.
+
+Oracle Clusterware on database "orcl" is available for database restart.
+
+Oracle Clusterware on database "orcl_stb" is available for database restart.
+
+
+Database - orcl_stb
+
+  Role:                PHYSICAL STANDBY
+  Intended State:      APPLY-ON
+  Transport Lag:       0 seconds (computed 1 second ago)
+  Apply Lag:           0 seconds (computed 1 second ago)
+  Average Apply Rate:  1.89 MByte/s
+  Real Time Query:     ON
+  Instance(s):
+    orcl_stb1 (apply instance)
+    orcl_stb2
+
+Database Status:
+SUCCESS
+
