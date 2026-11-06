@@ -6,7 +6,7 @@
 out=$1 dur=${2:-900} end=$(( $(date +%s) + dur ))
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=3"
 running() { [ "$(virsh -c qemu:///system domstate $1 2>/dev/null | head -1)" = running ]; }
-while [ $(date +%s) -lt $end ] && [ ! -f $out.stop ]; do
+while [ "$(date +%s)" -lt "$end" ] && [ ! -f "$out.stop" ]; do
   role=""; gnode=""
   for h in prm1 stb1; do running $h || { role="$role $h:DOWN"; continue; }
     r=$(timeout 15 $SSH oracle@$h '. ~/.bash_profile >/dev/null 2>&1; export ORACLE_SID=$(pgrep -a -f "ora_pmon_orcl" | sed "s/.*ora_pmon_//" | head -1); sqlplus -s / as sysdba @/home/oracle/role.sql' 2>/dev/null | head -1 | sed 's/ /_/g')

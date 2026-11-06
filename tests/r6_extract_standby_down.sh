@@ -17,7 +17,8 @@ state() {
   echo "$(date +%T) $1 | EXTA: $e| $f"
 }
 ping_ab() {  # one row A->B, wait up to 90 s
-  local seq=$(date +%s) n i
+  local seq n i
+  seq=$(date +%s)
   printf "alter session set container=ORCLPDB2;\ninsert into app.cdc_events(site,seq,account,amount,note,created) values ('TEST',$seq,1,0,'extract_test',systimestamp);\ncommit;\nexit\n" | sq >/dev/null
   for i in $(seq 1 18); do
     n=$(printf "set heading off feedback off pages 0\nalter session set container=GGREPL;\nselect count(*) from app.cdc_events where site='TEST' and seq=$seq;\nexit\n" | ssh -o BatchMode=yes oracle@prm3 "$ENV; sqlplus -s / as sysdba" | tr -dc 0-9)
