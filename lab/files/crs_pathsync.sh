@@ -1,3 +1,4 @@
+#!/bin/bash
 G=/u01/app/23.26.0/grid/bin
 # pullup:always: plain pullup only starts ogg_pathsync if its TARGET is ONLINE; after a node is powered off and
 # rebooted the target is OFFLINE, so GG_A came up without it and B2A kept pointing at the dead site (run 5).

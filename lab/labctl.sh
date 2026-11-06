@@ -145,7 +145,7 @@ sync_node() {
   esac
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
   OGG_PASSWORD="$OGG_PASSWORD" awk '/^OGG_PASSWORD=/ {print "OGG_PASSWORD=" ENVIRON["OGG_PASSWORD"]; next} {print}' \
-    $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
+    "$F/pathsync_$(echo "$r" | tr A-Z a-z).conf.example" \
     | $SSH oracle@$v "umask 077; cat > $HA/pathsync.conf"
   $SSH root@$v "chmod 750 $HA/mount-dbfs.sh $HA/ogg-path-sync.py; chmod 600 $HA/pathsync.conf
     printf 'd /run/ogg 0750 oracle oinstall -\nd /run/ogg/GG_$r 0750 oracle oinstall -\nd /run/ogg/sm 0750 oracle oinstall -\n' > /etc/tmpfiles.d/ogg.conf
