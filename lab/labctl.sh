@@ -139,8 +139,8 @@ sync_node() {
     rmdir $F/pending/$v 2>/dev/null
   fi
   log_hygiene $v
-  # native network encryption on every Region A RAC node (prm2/stb2 were off when it was set by hand)
-  case $v in prm1|prm2|stb1|stb2)
+  # native network encryption on every database node (prm2/stb2 were off when it was set by hand)
+  case $v in prm1|prm2|stb1|stb2|prm3|stb3)
     $SCP $F/nne-sqlnet.ora root@$v:/tmp/nne-sqlnet.ora && log "$v: NNE $($SSH root@$v bash -s /tmp/nne-sqlnet.ora < $F/vm-nne.sh)" ;;
   esac
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
