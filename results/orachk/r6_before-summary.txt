@@ -1,0 +1,23 @@
+# ORAchk (AHF 25.11), primary cluster, prm1 + prm2, root, -a -dball -usesocket. Summary extracted from the HTML report; the report itself stays on the node.
+# System health score: 91
+# Coverage: OS, ASM and cluster checks only. Database checks did not run (the report shows "Instances found running: 0", one SQL parameter check, no MAA scorecard).
+# A run as oracle fails with "TFA socket connection is not available"; a run over SSH crashes in ORAchk itself and needs a root key this lab does not allow.
+# Rows: {'CRITICAL': 2, 'FAIL': 3, 'WARN': 12, 'INFO': 7, 'PASS': 128, 'UNDETERMINED': 1}
+CRITICAL|OS Check|Verify kernel-space and user-space core dumps configuration
+CRITICAL|OS Check|Verify ORAchk scheduler configuration across cluster
+FAIL|ASM Check|Check the integrity of key GI startup files
+FAIL|OS Check|Verify rngd system service
+FAIL|OS Check|Verify Cluster health Monitor(CHM) configuration
+WARN|OS Check|Disk I/O Scheduler on Linux
+WARN|ASM Check|ASM disk group compatible.rdbms attribute
+WARN|OS Check|Jumbo frames configuration for interconnect
+WARN|OS Check|VIP NIC bonding config.
+WARN|OS Check|Interconnect NIC bonding config.
+WARN|OS Check|ip_local_port_range
+WARN|OS Check|OCR backup
+WARN|OS Check|OCR and OCR backup location
+WARN|OS Check|Verify Database Memory Allocation
+WARN|OS Check|Check for Package libaio-devel|0.3.111|13.el9|x86_64
+WARN|OS Check|Check for Package libstdc++-devel|11.2.1|9.4.0.2.el9|x86_64
+WARN|OS Check|Linux Swap Size
+UNDETERMINED|OS Check|OCR Integrity

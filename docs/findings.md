@@ -208,3 +208,33 @@ and the timelines in this repository compare events across hosts. Fix: the KVM h
 running VMs within 0.1 ms of their source and `cluvfy comp clocksync` passes
 ([evidence](../results/maintenance/vm-ntp.txt)). At the first sync the clocks were 0.2 to 0.8 s off, below chrony's 1 s step limit, so it slewed them: no clock step in the
 `chronyd` journal on prm1.
+
+## F19
+
+**First look with Oracle's own checker.** `ORAchk` found what my own checks had not looked at: OCR and OLR backups too old, and OCR backups on the same disk group as the OCR. Fixed on both
+clusters (`ocrconfig -backuploc +DATA`, manual backups). The other findings are accepted with a written reason, and ORAchk's database checks did not run in this setup
+([details](../results/orachk/README.md)). My mistake on the way: the first runs purged ORAchk's previous report by its 14-day retention, so the earlier figures can no longer be checked.
+
+## F20
+
+**The FSFO threshold was too low for a RAC.** `validate fast_start failover`, never run before in this lab, warned `Fast-start failover threshold may be too low for RAC databases`. Oracle's MAA guide gives, for a
+RAC primary, CSS misscount + reconfiguration + 30 s. With a misscount of 30 s the threshold went from 30 s to 90 s: a surviving node gets time to reconfigure before a failover. The price is real: a lost primary now
+waits 60 s longer. Failover times of runs 1 to 5 were measured at 30 s and stay valid for that setting. The reconfiguration time in the formula was estimated, not measured. Region B has one instance and keeps 30 s.
+
+## F21
+
+**While the standby is down, Region A rows stop reaching Region B, and a check of Data Guard alone looks fine.** In run 6 the reconciliation after a power-off failed: 572 committed rows on Region A were missing on Region B. Nothing was lost: they
+were on Region A and arrived within 40 s of restarting Extract with the standby back. The first explanation I wrote down was that the standby had been off for long, and it did not hold up. A [controlled test](../results/maintenance/r6-extract-standby-down.txt), with no failover:
+
+| Standby down | Extract | One row A→B |
+|--------------|---------|-------------|
+| `HANDLEDLFAILOVER` on, no log switch | RUNNING, checkpoint frozen | not in 90 s |
+| `HANDLEDLFAILOVER` on, after a log switch | RUNNING, checkpoint frozen | not in 90 s |
+| `HANDLEDLFAILOVER` off, after a log switch | RUNNING, checkpoint moving | 5 s |
+
+So the parameter is the cause. It does what it is for: Extract must not ship what a failover would lose, or Region B would be ahead of Region A. The price is a stopped replication while the standby is away, which the [runbook](runbooks/06-goldengate.md) now says.
+
+**Not explained:** after a real failover Extract kept shipping for about 5 minutes (until 04:16:33), then abended with `OGG-06219` 18 s after the first log switch, and its automatic restarts ran out. The controlled test did not reproduce that abend. After a failover, check Extract explicitly: `gg_heal` only runs at the end of a `labctl` scenario.
+
+My mistake that made this visible: the client of the same test hung at exit, so the standby stayed off 25 minutes instead of a few.
+
