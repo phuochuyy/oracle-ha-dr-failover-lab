@@ -27,6 +27,17 @@ HA=/u01/app/oracle/ogg_ha
 log() { echo "[$(date +%T)] $*"; }
 running() { [ "$($VIRSH domstate "$1" 2>/dev/null | head -1)" = "running" ]; }
 
+# Refuse to start a scenario when the host is short of disk: the VM images are thin-provisioned, so a full host pauses
+# every VM (I/O error). Only a deliberate override goes below the limit: LAB_MIN_FREE_GB=<n> ./labctl.sh <scenario>
+require_disk() {
+  local need=${LAB_MIN_FREE_GB:-12} free
+  free=$(df -BM --output=avail / | tail -1 | tr -dc 0-9)
+  if [ "$free" -lt $((need * 1024)) ]; then
+    echo "REFUSED: host has ${free} MB free, limit is ${need} GB. Reclaim disk first (labctl.sh trim), or set LAB_MIN_FREE_GB." >&2
+    exit 3
+  fi
+}
+
 # ---------------------------------------------------------------- VM
 vm_start() {
   local v
@@ -290,6 +301,8 @@ status() {
   done
   echo "== GoldenGate"; gg_status
 }
+
+case "${1:-status}" in gg|dg-a|dg-b|rac) require_disk ;; esac
 
 case "${1:-status}" in
   status)   status ;;
