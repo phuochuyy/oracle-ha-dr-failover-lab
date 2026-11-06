@@ -1,0 +1,4 @@
+event start 20:23:59.045: virsh -c qemu:///system destroy stb1
+Domain 'stb1' destroyed
+
+event end 20:23:59.531 rc=0

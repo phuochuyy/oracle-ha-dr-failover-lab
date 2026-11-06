@@ -1,0 +1,3 @@
+event start 20:31:45.394: killsrv.sh x
+killing: 17928 17930 
+event end 20:31:46.221 rc=0

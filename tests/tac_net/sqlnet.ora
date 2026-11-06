@@ -1,0 +1,7 @@
+# Client side of the Application Continuity test (read through config_dir in tac_client.py).
+# A dead primary sends no TCP reset when its whole cluster is gone: the VIP has no surviving node to move to, so a
+# blocked client would wait for TCP retransmission to give up (about 15 minutes on Linux defaults). These bound that wait.
+# Trade-off: a statement that returns nothing for longer than RECV_TIMEOUT fails, so the value must be above the longest call.
+SQLNET.RECV_TIMEOUT = 30
+SQLNET.SEND_TIMEOUT = 30
+NAMES.DIRECTORY_PATH = (EZCONNECT)
