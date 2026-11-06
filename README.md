@@ -15,6 +15,8 @@ This is a home lab on one small host, not a production system.
 
 ## Where to look
 
+- [Strategy](docs/strategy.md)
+- [Runbooks](docs/runbooks/README.md)
 - [Results of every run](docs/details.md)
 - [Findings](docs/findings.md)
 - [Architecture](docs/architecture.md)
