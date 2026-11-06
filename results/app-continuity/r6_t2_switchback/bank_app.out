@@ -1,0 +1,1 @@
+# summary client=app96199 service=bank_app transactions=347 told_ok=347 errors_seen=0 lost=0 duplicated=0 error_but_committed=0 partial=0 slowest_ok_ms=57076 (seq 72)

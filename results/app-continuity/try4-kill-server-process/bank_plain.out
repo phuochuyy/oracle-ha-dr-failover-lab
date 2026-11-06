@@ -1,0 +1,1 @@
+# summary client=plain71885 service=bank_plain transactions=144 told_ok=143 errors_seen=1 lost=0 duplicated=0 error_but_committed=0 partial=0 slowest_ok_ms=366 (seq 69)
