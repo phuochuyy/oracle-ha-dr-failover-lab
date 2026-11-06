@@ -7,6 +7,7 @@
 | `verify.py` | host | every committed (OK) tx must exist on both DBs; both DBs identical; ERR rows allowed only as in-doubt |
 | `timeline.sh <out> <secs>` | host | every 5 s: DB roles, GG_A node + process states, A2B/B2A status/target, last client result |
 | `dg.sh`, `gg.sh` | host | run DGMGRL / AdminClient commands on a VM |
+| `gg_ping.sh [hostA] [hostB]` | host | one row each way through GoldenGate (insert, then delete); prints seconds, exit 0 only if everything arrived |
 | `sql/create_txn.sql`, `sql/drop_txn.sql` | each PDB | test table with Auto-CDR, and its cleanup |
 
 All scripts read credentials from `../lab.env`. Passwords travel on stdin only (`sqlplus /nolog` + `CONNECT`, `ssh … 'bash -s'`), never on a command line — checked with 100 `ps` samples on prm3 ([`results/password-off-cmdline.txt`](../results/password-off-cmdline.txt)).

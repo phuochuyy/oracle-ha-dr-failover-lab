@@ -196,3 +196,15 @@ thin-provisioned, so a full host pauses every VM with an I/O error (it happened 
 Fix: `labctl.sh` runs `require_disk` before `gg`, `dg-a`, `dg-b`, `rac` and refuses with exit code 3 below the limit;
 going below it takes an explicit `LAB_MIN_FREE_GB=<n>`. `status`, `stop-all` and `trim` are not blocked, because they are what
 gets the host out of that state.
+
+## F18
+
+**No VM's clock was synchronised, and nothing reported it.** `chrony.conf` on every VM pointed at a public NTP pool, but the
+VMs have no route to the internet: all sources at reach 0, `Leap status: Not synchronised`, clocks 0.6 s and 1.1 s behind the
+host on the two nodes measured. It matters here more than usual: GoldenGate conflict resolution picks the latest timestamp,
+and the timelines in this repository compare events across hosts. Fix: the KVM host serves NTP on the VM networks
+([`host-ntp.sh`](../lab/files/host-ntp.sh), with `local stratum 10` so the VMs stay in step when the host is offline), and
+`sync_node` points each VM at its default gateway ([`vm-ntp.sh`](../lab/files/vm-ntp.sh)), observers included. Result: all four
+running VMs within 0.1 ms of their source and `cluvfy comp clocksync` passes
+([evidence](../results/maintenance/vm-ntp.txt)). The first run stepped each clock by under 1 s, on nodes with CRS already up;
+nothing in the cluster complained.

@@ -7,6 +7,7 @@
 #   ./labctl.sh dg-a       Region A (ADG + FSFO):           prm1 + stb1 + obs-r1 + prm3   (~20 GB)
 #   ./labctl.sh dg-b       Region B (ADG + FSFO):           prm3 + stb3 + obs-r2 + prm1   (~20 GB)
 #   ./labctl.sh rac        RAC 2 node (test relocate XAG):  prm1 + prm2 + prm3            (~19 GB)
+#   ./labctl.sh start VM.. bật riêng từng VM qua sync_node, không đổi trạng thái Data Guard
 #   ./labctl.sh stop-all   tắt toàn bộ lab an toàn
 #
 # Region có standby tắt: tắt FSFO + TRANSPORT-OFF + bỏ HANDLEDLFAILOVER (theo khuyến nghị của Oracle khi standby ngừng lâu).
@@ -109,6 +110,7 @@ log_hygiene() {
     $SCP $F/ogg-http.logrotate root@$v:/etc/logrotate.d/ogg-http &&
     $SSH root@$v bash -s < $F/vm-loghygiene.sh
   $SSH root@$v bash -s < $F/vm-swapdiscard.sh   # swap areas with discard (fstrim does not cover swap)
+  log "$v: $($SSH root@$v bash -s < $F/vm-ntp.sh || echo 'ntp: failed')"   # chrony -> KVM host (the public pool is unreachable from the VMs)
 }
 
 # Đồng bộ file cấu hình HA/GG (bản chuẩn nằm trong $F) sang node vừa bật
@@ -117,7 +119,7 @@ sync_node() {
   case $v in
     prm1|prm2|stb1|stb2) r=A ;;
     prm3|stb3)           r=B ;;
-    *) return ;;
+    *) log "$v: $($SSH root@$v bash -s < $F/vm-ntp.sh || echo 'ntp: failed')"; return ;;   # observers: only the clock
   esac
   # one-time files for a node that was off during a credential change (files/pending/<node>/, mode 700):
   # ogg_tns_wallet/ = new DBFS wallet, orapw* = password file (single-instance standby). Copied right after
@@ -142,7 +144,8 @@ sync_node() {
     $SCP $F/nne-sqlnet.ora root@$v:/tmp/nne-sqlnet.ora && log "$v: NNE $($SSH root@$v bash -s /tmp/nne-sqlnet.ora < $F/vm-nne.sh)" ;;
   esac
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
-  sed "s/^OGG_PASSWORD=.*/OGG_PASSWORD=$OGG_PASSWORD/" $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
+  OGG_PASSWORD="$OGG_PASSWORD" awk '/^OGG_PASSWORD=/ {print "OGG_PASSWORD=" ENVIRON["OGG_PASSWORD"]; next} {print}' \
+    $F/pathsync_$(echo $r | tr A-Z a-z).conf.example \
     | $SSH oracle@$v "umask 077; cat > $HA/pathsync.conf"
   $SSH root@$v "chmod 750 $HA/mount-dbfs.sh $HA/ogg-path-sync.py; chmod 600 $HA/pathsync.conf
     printf 'd /run/ogg 0750 oracle oinstall -\nd /run/ogg/GG_$r 0750 oracle oinstall -\nd /run/ogg/sm 0750 oracle oinstall -\n' > /etc/tmpfiles.d/ogg.conf
@@ -302,10 +305,12 @@ status() {
   echo "== GoldenGate"; gg_status
 }
 
-case "${1:-status}" in gg|dg-a|dg-b|rac) require_disk ;; esac
+case "${1:-status}" in gg|dg-a|dg-b|rac|start) require_disk ;; esac
 
 case "${1:-status}" in
   status)   status ;;
+  start)    shift; for v in "$@"; do $VIRSH dominfo "$v" >/dev/null 2>&1 || { echo "no such VM: $v" >&2; exit 2; }; done
+            vm_start "$@" ;;   # single VMs through sync_node, Data Guard state untouched
   gg)       vm_start prm1 prm3
             dg_isolate A; dg_isolate B
             vm_stop prm2 stb1 stb2 stb3 obs-r1 obs-r2

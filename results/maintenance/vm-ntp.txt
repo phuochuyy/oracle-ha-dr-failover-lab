@@ -1,0 +1,25 @@
+# VM clocks before and after the host became their NTP server
+
+## Before (chrony pointed at a public pool the VMs cannot reach)
+prm1, prm3: chronyc tracking 'Leap status: Not synchronised', all sources reach 0
+prm1 offset vs host -0.575 s (ssh round trip 0.144 s), prm3 -1.135 s (round trip 0.251 s)
+
+## labctl sync_node output at the next start
+prm1: ntp: conf installed, Normal, 0.618781805 seconds slow of NTP time
+prm3: ntp: conf installed, Normal, 0.460858405 seconds slow of NTP time
+stb1: ntp: conf installed, Normal, 0.209180266 seconds slow of NTP time
+obs-r1: ntp: conf installed, Normal, 0.806127310 seconds slow of NTP time
+
+## After 3 minutes: chronyc tracking on each VM
+prm1   Normal, stratum 4, 0.000000689 seconds fast of NTP time, ref C0A86801 (192.168.104.1)
+stb1   Normal, stratum 4, 0.000063489 seconds slow of NTP time, ref C0A86901 (192.168.105.1)
+prm3   Normal, stratum 4, 0.000061809 seconds slow of NTP time, ref C0A86A01 (192.168.106.1)
+obs-r1 Normal, stratum 4, 0.000052853 seconds slow of NTP time, ref C0A86B01 (192.168.107.1)
+
+## cluvfy comp clocksync (prm1, as grid)
+Daemon 'chronyd' ...PASSED
+NTP daemon or service using UDP port 123 ...PASSED
+chrony daemon is synchronized with at least one external time source ...PASSED
+Network Time Protocol (NTP) ...PASSED
+Clock Synchronization ...PASSED
+Verification of Clock Synchronization across the cluster nodes component was successful. 
