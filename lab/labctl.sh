@@ -129,8 +129,13 @@ sync_node() {
   fi
   log_hygiene $v
   # native network encryption on every database node (prm2/stb2 were off when it was set by hand)
+  # Region B also has a listener allow list in the same file (security repository, 03-hardening/08_valid_nodes.sh)
+  case $v in
+    prm1|prm2|stb1|stb2) $SCP $F/nne-sqlnet.ora root@$v:/tmp/nne-sqlnet.ora ;;
+    prm3|stb3) cat $F/nne-sqlnet.ora $F/validnode-b.ora | $SSH root@$v 'cat > /tmp/nne-sqlnet.ora' ;;
+  esac
   case $v in prm1|prm2|stb1|stb2|prm3|stb3)
-    $SCP $F/nne-sqlnet.ora root@$v:/tmp/nne-sqlnet.ora && log "$v: NNE $($SSH root@$v bash -s /tmp/nne-sqlnet.ora < $F/vm-nne.sh)" ;;
+    log "$v: NNE $($SSH root@$v bash -s /tmp/nne-sqlnet.ora < $F/vm-nne.sh)" ;;
   esac
   $SCP $F/mount-dbfs.sh $F/ogg-path-sync.py oracle@$v:$HA/
   OGG_PASSWORD="$OGG_PASSWORD" awk '/^OGG_PASSWORD=/ {print "OGG_PASSWORD=" ENVIRON["OGG_PASSWORD"]; next} {print}' \
