@@ -1,12 +1,12 @@
 #!/bin/bash
 # Điều khiển lab Oracle HA/DR theo kịch bản.
-# Host 23 GB RAM: VM RAC 7 GB, single-instance 5 GB, observer 1 GB -> mỗi cụm RAC chạy 1 node.
+# Host 23 GB RAM: VM database 7 GB (stb2 5 GB), observer 1 GB -> mỗi cụm RAC chạy 1 node; host có thể dùng 2-3 GB swap.
 #
 #   ./labctl.sh status     trạng thái VM, Data Guard, GoldenGate
-#   ./labctl.sh gg         GoldenGate Active-Active:        prm1 + prm3                   (~12 GB)
-#   ./labctl.sh dg-a       Region A (ADG + FSFO):           prm1 + stb1 + obs-r1 + prm3   (~20 GB)
-#   ./labctl.sh dg-b       Region B (ADG + FSFO):           prm3 + stb3 + obs-r2 + prm1   (~20 GB)
-#   ./labctl.sh rac        RAC 2 node (test relocate XAG):  prm1 + prm2 + prm3            (~19 GB)
+#   ./labctl.sh gg         GoldenGate Active-Active:        prm1 + prm3                   (~14 GB)
+#   ./labctl.sh dg-a       Region A (ADG + FSFO):           prm1 + stb1 + obs-r1 + prm3   (~22 GB)
+#   ./labctl.sh dg-b       Region B (ADG + FSFO):           prm3 + stb3 + obs-r2 + prm1   (~22 GB)
+#   ./labctl.sh rac        RAC 2 node (test relocate XAG):  prm1 + prm2 + prm3            (~21 GB)
 #   ./labctl.sh start VM.. bật riêng từng VM qua sync_node, không đổi trạng thái Data Guard
 #   ./labctl.sh stop-all   tắt toàn bộ lab an toàn
 #
@@ -27,17 +27,6 @@ HA=/u01/app/oracle/ogg_ha
 
 log() { echo "[$(date +%T)] $*"; }
 running() { [ "$($VIRSH domstate "$1" 2>/dev/null | head -1)" = "running" ]; }
-
-# Refuse to start a scenario when the host is short of disk: the VM images are thin-provisioned, so a full host pauses
-# every VM (I/O error). Only a deliberate override goes below the limit: LAB_MIN_FREE_GB=<n> ./labctl.sh <scenario>
-require_disk() {
-  local need=${LAB_MIN_FREE_GB:-12} free
-  free=$(df -BM --output=avail / | tail -1 | tr -dc 0-9)
-  if [ "$free" -lt $((need * 1024)) ]; then
-    echo "REFUSED: host has ${free} MB free, limit is ${need} GB. Reclaim disk first (labctl.sh trim), or set LAB_MIN_FREE_GB." >&2
-    exit 3
-  fi
-}
 
 # ---------------------------------------------------------------- VM
 vm_start() {
@@ -304,8 +293,6 @@ status() {
   done
   echo "== GoldenGate"; gg_status
 }
-
-case "${1:-status}" in gg|dg-a|dg-b|rac|start) require_disk ;; esac
 
 case "${1:-status}" in
   status)   status ;;
