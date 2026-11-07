@@ -186,7 +186,7 @@ that exist only on prm3 (`/u02/redo2`, added there by a backup drill). Created o
 switchover (31 s). GoldenGate followed by itself: GG_B moved to stb3 with its DBFS, the path from Region A re-pointed,
 both directions replicated; switchback 16 s, rows both ways in 7–11 s ([evidence](../results/maintenance/region-b-switchover.txt)).
 Lesson: after restoring a standby control file from the primary, check that every file path it names exists on the
-standby — the database only notices at the role change. Not tested yet: an FSFO failover (power-off) in Region B.
+standby — the database only notices at the role change. The power-off came later: [run 7](../results/r7-region-b-summary.md).
 
 ## F17
 
@@ -237,4 +237,14 @@ So the parameter is the cause. It does what it is for: Extract must not ship wha
 **Not explained:** after a real failover Extract kept shipping for about 5 minutes (until 04:16:33), then abended with `OGG-06219` 18 s after the first log switch, and its automatic restarts ran out. The controlled test did not reproduce that abend. After a failover, check Extract explicitly: `gg_heal` only runs at the end of a `labctl` scenario.
 
 My mistake that made this visible: the client of the same test hung at exit, so the standby stayed off 25 minutes instead of a few.
+
+## F22
+
+**A Region B switchover succeeded, and replication from Region B stopped with nothing reporting it.** The first switchover after hardening took 25 s and the client wrote to the new primary 16 s after the start. Then the row comparison failed: 146 rows from Region B had not reached Region A. On stb3 the Distribution Service had failed to read its configuration from DBFS at startup (`OGG-12009`, `global.dat`, unchanged for days) and stayed alive with no port open. `INFO ALL` said `RUNNING`, the Service Manager left it alone, Data Guard said `SUCCESS`. No row was lost: they waited in the trail and arrived once the service was up.
+
+Killing the process was enough: the Service Manager relaunched it and port 9102 was listening within 5 s. The Region B controller now does this itself when a service has been up for 60 s with its port closed ([`ogg-ha-controller.sh`](../lab/files/ogg-ha-controller.sh)). The three role changes after it passed without the watch acting, so the watch itself has only been proved by hand, not by a recurrence.
+
+**Not explained:** why the read failed. DBFS had just been mounted on a database that had just opened, which is where I would look, but I did not prove it. Region A runs on XAG instead of this controller and has no such watch; it has not shown this failure.
+
+Lesson: `INFO ALL` reports that a process exists, not that it works. Only comparing rows across the regions showed this. [Run 7](../results/r7-region-b-summary.md).
 

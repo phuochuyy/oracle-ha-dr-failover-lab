@@ -1,0 +1,50 @@
+18:53:29 | prm3:PRM:RW stb3:STB:MOUNTED | GG_B@prm3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@prm3
+18:53:36 | prm3:PRM:RW stb3:STB:MOUNTED | GG_B@prm3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@prm3
+18:53:43 | prm3:PRM:RW stb3:STB:MOUNTED | GG_B@prm3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@prm3
+18:53:50 | prm3:DOWN stb3:STB:MOUNTED | GG_B@none: | wlA=OK@prm1 wlB=OK@prm3
+18:53:56 | prm3:DOWN stb3:STB:MOUNTED | GG_B@none: | wlA=OK@prm1 wlB=OK@prm3
+18:54:02 | prm3:DOWN stb3:STB:MOUNTED | GG_B@none: | wlA=OK@prm1 wlB=OK@prm3
+18:54:08 | prm3:DOWN stb3:STB:MOUNTED | GG_B@none: | wlA=OK@prm1 wlB=ERR@rc=1
+18:54:14 | prm3:DOWN stb3:STB:MOUNTED | GG_B@none: | wlA=OK@prm1 wlB=ERR@rc=1
+18:54:20 | prm3:DOWN stb3:STB:MOUNTED | GG_B@none: | wlA=OK@prm1 wlB=ERR@rc=1
+18:54:26 | prm3:DOWN stb3:PRM:RW | GG_B@none: | wlA=OK@prm1 wlB=ERR@rc=1
+18:54:32 | prm3:DOWN stb3:PRM:RW | GG_B@none: | wlA=OK@prm1 wlB=ERR@rc=1
+18:54:38 | prm3:DOWN stb3:PRM:RW | GG_B@none: | wlA=OK@prm1 wlB=ERR@rc=1
+18:54:44 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:54:50 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:54:56 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:03 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:09 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:15 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:22 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:28 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:34 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:41 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=ABENDED REPB=ABENDED B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:47 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:55:54 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:01 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:07 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:14 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:20 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:27 | prm3:DOWN stb3:PRM:RW | GG_B@none: | wlA=OK@prm1 wlB=OK@stb3
+18:56:38 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:44 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:50 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:56:57 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:03 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:10 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:16 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:23 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:29 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:36 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:42 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:49 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:57:55 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:01 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:08 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:14 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:20 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:27 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:33 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:39 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3
+18:58:46 | prm3:DOWN stb3:PRM:RW | GG_B@stb3: EXTB=RUNNING REPB=RUNNING B2A=running  | wlA=OK@prm1 wlB=OK@stb3

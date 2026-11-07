@@ -1,0 +1,4 @@
+event start 18:53:49.050: virsh -c qemu:///system destroy prm3
+Domain 'prm3' destroyed
+
+event end 18:53:49.552 rc=0
