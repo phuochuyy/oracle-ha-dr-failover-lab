@@ -1,0 +1,27 @@
+event start 18:49:56.367: /home/huy/work/oracle-ha-dr-failover-lab/tests/dg.sh stb3 orcl3_stb switchover to orcl3
+2026-11-07T18:49:56.771+07:00
+Performing switchover NOW, please wait...
+
+2026-11-07T18:49:56.784+07:00
+Operation requires a connection to database "orcl3"
+Connecting ...
+Connected as SYSDG.
+
+2026-11-07T18:49:56.986+07:00
+Continuing with the switchover...
+
+2026-11-07T18:49:58.752+07:00
+New primary database "orcl3" is opening...
+
+2026-11-07T18:49:58.752+07:00
+Operation requires start up of instance "ORCL3" on database "ORCL3_STB"
+Starting instance "ORCL3"...
+ORACLE instance started.
+Database mounted.
+
+2026-11-07T18:50:11.731+07:00
+Switchover succeeded, new primary is "orcl3"
+
+2026-11-07T18:50:11.732+07:00
+Switchover processing complete, broker ready.
+event end 18:50:11.759 rc=0

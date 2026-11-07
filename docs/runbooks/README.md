@@ -13,7 +13,7 @@ These are targets chosen for this lab from its measured runs. In a real system t
 | Primary lost, FSFO synchronized | 0 | 3 min | 5 min |
 | Primary lost, FSFO **not** synchronized | a decision, see [03](03-manual-failover.md) | a decision | a decision |
 
-Measured against these targets: [run 6](../../results/r6-run-summary.md). The failover times include the FSFO threshold of 90 s ([F20](../findings.md#f20)).
+Measured against these targets: [run 6](../../results/r6-run-summary.md), and Region B in [run 7](../../results/r7-region-b-summary.md). The failover times include the FSFO threshold of 90 s ([F20](../findings.md#f20)).
 
 ## Which runbook
 

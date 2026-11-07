@@ -12,6 +12,7 @@ ExecStart=/u01/app/oracle/ogg_ha/oracle-db.sh start
 ExecStop=/u01/app/oracle/ogg_ha/oracle-db.sh stop
 TimeoutStartSec=600
 TimeoutStopSec=600
+LimitMEMLOCK=infinity
 
 [Install]
 WantedBy=multi-user.target

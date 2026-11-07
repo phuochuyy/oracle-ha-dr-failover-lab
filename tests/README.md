@@ -2,7 +2,7 @@
 
 | File | Runs on | Purpose |
 |------|---------|---------|
-| `wl.sh` | prm3 | 1 tx/s per site, new connection per tx; logs `seq OK host phase` or `seq ERR code` |
+| `wl.sh` | prm3 (prm1 for a Region B power-off: `WL_HOST`) | 1 tx/s per site, new connection per tx; logs `seq OK host phase` or `seq ERR code` |
 | `check.sh <tag> [next-phase]` | host | stop workload, wait until both sites converge, dump rows, run `verify.py`, optionally restart workload |
 | `verify.py` | host | every committed (OK) tx must exist on both DBs; both DBs identical; ERR rows allowed only as in-doubt |
 | `timeline.sh <out> <secs>` | host | every 5 s: DB roles, GG_A node + process states, A2B/B2A status/target, last client result |
@@ -30,6 +30,6 @@ All scripts read credentials from `../lab.env`. Passwords travel on stdin only (
 DDL is not replicated. Dropping the table while trail still contains changes for it makes the
 Replicat abend with OGG-00199 when it re-reads from its checkpoint.
 
-1. `touch /tmp/wl.stop` on prm3 and confirm no `wl.sh` process is left.
+1. `touch /tmp/wl.stop` on the client host and confirm no `wl.sh` process is left.
 2. Wait until both Replicats show lag 0 and a read checkpoint later than the last workload row.
 3. `STOP REPLICAT` on the site → run `sql/drop_txn.sql` → `START REPLICAT`. Repeat on the other site.

@@ -30,11 +30,29 @@ start_gg() {
       setsid nohup $OGG_HOME/bin/ServiceManager >/dev/null 2>&1 </dev/null &
   fi
   systemctl is-active -q nginx || systemctl start nginx
+  gg_running && watch_ports
   # đồng bộ target distribution path mỗi ~60s
   if gg_running && [ $(( $(date +%s) / 60 )) -ne "${LAST_SYNC:-0}" ]; then
     LAST_SYNC=$(( $(date +%s) / 60 ))
     runuser -u oracle -- /u01/app/oracle/ogg_ha/ogg-path-sync.py start
   fi
+}
+
+# A service can start and fail to load its configuration from DBFS (OGG-12009 on stb3, right after a role change): the
+# process stays alive with no port open, INFO ALL says RUNNING, and the Service Manager leaves it alone. The path then
+# stops with nothing reporting it. Killed, it is relaunched by the Service Manager and comes up in seconds.
+watch_ports() {
+  local x pid age
+  for x in "adminsrvr 9101" "distsrvr 9102" "recvsrvr 9103"; do
+    set -- $x
+    pid=$(pgrep -u oracle -x "$1") || continue
+    ss -ltn | grep -q ":$2 " && continue
+    age=$(ps -o etimes= -p "$pid" | tr -d ' ')
+    if [ "${age:-0}" -gt 60 ]; then
+      log "$1 pid $pid: up $age s, port $2 closed: killing it, the Service Manager relaunches it"
+      kill "$pid"
+    fi
+  done
 }
 
 stop_gg() {
