@@ -1,0 +1,23 @@
+event start 06:09:44.833: /home/huy/work/oracle-ha-dr-failover-lab/tests/dg.sh prm1 orcl switchover to orcl_stb
+2026-11-08T06:09:45.296+07:00
+Performing switchover NOW, please wait...
+
+2026-11-08T06:09:45.322+07:00
+Operation requires a connection to database "orcl_stb"
+Connecting ...
+Connected as SYSDG.
+
+2026-11-08T06:09:45.515+07:00
+Continuing with the switchover...
+
+2026-11-08T06:10:22.750+07:00
+New primary database "orcl_stb" is opening...
+
+2026-11-08T06:10:22.750+07:00
+Oracle Clusterware is restarting database "orcl" ...
+2026-11-08T06:11:21.591+07:00
+Switchover succeeded, new primary is "orcl_stb"
+
+2026-11-08T06:11:21.654+07:00
+Switchover processing complete, broker ready.
+event end 06:11:21.720 rc=0
