@@ -15,7 +15,7 @@ Closest to the Gold tier of Oracle's Maximum Availability Architecture: RAC for 
 | Failure | Mechanism | Data loss | Tested here |
 |---------|-----------|-----------|-------------|
 | Server process or session | Application Continuity on the service | none | Yes, [with limits](../results/app-continuity/README.md) |
-| One RAC node | Surviving instance, service relocation | none | **Not as a power-off:** the lab normally runs one node per cluster for memory |
+| One RAC node | Surviving instance, service relocation | none | Yes, [power-off](../results/r10-rac-node-summary.md): node evicted at +30 s, services back at +39 s, no failover. One client crashed in its driver ([F23](findings.md#f23)) |
 | Whole primary cluster | Fast-Start Failover, SYNC, Zero Data Loss Mode, automatic reinstate | none | Yes, every run |
 | Planned maintenance | Broker switchover | none | Yes, every run |
 | Region B primary | The same, on a single instance | none | Yes, [switchover and power-off](../results/r7-region-b-summary.md) |
