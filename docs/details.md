@@ -15,6 +15,8 @@
 | 9 | stb1 at 7 GB as primary for 30 min | 1,972 + 2,056 | **0** | Swap 4,146 of 5,631 MB, no hang ([summary](../results/r9-run-summary.md)) |
 | 10 | power-off of one RAC node | Application Continuity clients | **0** | Node evicted +30 s, no failover; one client crashed in its driver ([F23](findings.md#f23), [summary](../results/r10-rac-node-summary.md)) |
 
+There is no run 8 here: that number went to memory tests in the performance lab, run the same day.
+
 
 Self-built two-region Oracle high-availability / disaster-recovery lab on Linux KVM:
 two regions, each protected by Data Guard Fast-Start Failover, with GoldenGate 23.26 Microservices
