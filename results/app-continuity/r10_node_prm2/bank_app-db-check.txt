@@ -1,0 +1,2 @@
+app97648 seqs 95, rows 190, max seq 95
+seqs with one row only: 0

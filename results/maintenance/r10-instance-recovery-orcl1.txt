@@ -1,0 +1,14 @@
+--
+*** 2026-11-08T07:28:29.127367+07:00
+Instance recovery: looking for dead threads
+--
+Beginning instance recovery of 1 threads
+Reconfiguration complete (total time 0.1 secs) 
+--
+Instance Recovery is constructing the Bloom filter to speed-up the claim phase for pdbid = 0. Current incarnation number is 0.
+Instance recovery publishing the Bloom filter to all surviving instances to speed-up the claim phase for pdb 0, current incarnation 6.
+--
+2026-11-08T07:28:32.026751+07:00
+Completed redo application of 4.37MB
+2026-11-08T07:28:32.096900+07:00
+Completed instance recovery at

@@ -1,0 +1,7 @@
+Fatal glibc error: tpp.c:83 (__pthread_tpp_change_priority): assertion failed: new_prio == -1 || (new_prio >= fifo_min_prio && new_prio <= fifo_max_prio)
+Fatal glibc error: tpp.c:83 (__pthread_tpp_change_priority): assertion failed: new_prio == -1 || (new_prio >= fifo_min_prio && new_prio <= fifo_max_prio)
+Fatal glibc error: tpp.c:83 (__pthread_tpp_change_priority): assertion failed: new_prio == -1 || (new_prio >= fifo_min_prio && new_prio <= fifo_max_prio)
+Fatal glibc error: tpp.c:83 (__pthread_tpp_change_priority): assertion failed: new_prio == -1 || (new_prio >= fifo_min_prio && new_prio <= fifo_max_prio)
+Fatal glibc error: tpp.c:83 (__pthread_tpp_change_priority): assertion failed: new_prio == -1 || (new_prio >= fifo_min_prio && new_prio <= fifo_max_prio)
+ORA-24550: signal received: [si_signo=6] [si_errno=0] [si_code=-6] [si_int=0] [si_ptr=(nil)] [si_addr=0x3e8000113d4]
+kpedbg_dmp_stack()+415<-kpeDbgCrash()+220<-kpeDbgSignalHandler()+685<-skgesig_sigactionHandler()+295<-__sighandler()<-pthread_key_delete()+332?<-gsignal()+18

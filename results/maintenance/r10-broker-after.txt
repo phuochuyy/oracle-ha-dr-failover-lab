@@ -1,0 +1,6 @@
+  orcl     - Primary database
+    orcl_stb - (*) Physical standby database 
+Fast-Start Failover: Enabled in Zero Data Loss Mode
+SUCCESS   (status updated 42 seconds ago)
+Fast-Start Failover: Enabled in Zero Data Loss Mode
+prm2 start (labctl) to orcl2 running: 119 s

@@ -248,3 +248,9 @@ Killing the process was enough: the Service Manager relaunched it and port 9102 
 
 Lesson: `INFO ALL` reports that a process exists, not that it works. Only comparing rows across the regions showed this. [Run 7](../results/r7-region-b-summary.md).
 
+## F23
+
+**An Application Continuity client crashed inside the Oracle client library when a RAC node died.** In [run 10](../results/r10-rac-node-summary.md) the surviving node took over in about 34 s and the database lost nothing, but the `bank_app` client process (python-oracledb 26.1, thick mode, Instant Client 23.26, Debian 13 with glibc 2.41, FAN events on) aborted with a glibc assertion about thread priorities. The plain client on the same host saw one error and carried on. Every transaction the crashed client had been told was committed is in the database; the one in flight is absent entirely.
+
+**Not explained, seen once.** The client side of this lab is not a supported platform combination, so it may be specific to it. What it shows anyway: Application Continuity protects the database side of a request, and the application process still has to survive its own driver; a real deployment tests failover with the exact client stack it runs.
+
