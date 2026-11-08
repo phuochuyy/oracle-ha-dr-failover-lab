@@ -10,6 +10,10 @@
 | 3 | after rotating the shared GoldenGate password | 2,535 | **0** | XAG keeps that password per cluster |
 | 4 | rehearsal after the backup and security changes | 1,509 | **0** | [summary](../results/r4-rehearsal-summary.md) |
 | 5 | 2 switchovers, 2 power-offs, an out-of-memory primary in between | 6,629 | **0** | FSFO correctly refused to fail over to an unsynchronized target; fixed a CRS dependency of the path re-pointing ([summary](../results/r5-run-summary.md)) |
+| 6 | FSFO threshold 90 s (RAC guidance), Application Continuity clients | 4,281 + 4,826 | **0** | Slower by design: failover done +99 to +104 s, Active-Active back +154 to +165 s; Extract held while the standby was down ([F21](findings.md#f21), [summary](../results/r6-run-summary.md)) |
+| 7 | Region B: switchover, switchback, power-off of its primary | 1,193 + 897 | **0** | Failover +37 s; a stuck GoldenGate service after a switchover ([F22](findings.md#f22), [summary](../results/r7-region-b-summary.md)) |
+| 9 | stb1 at 7 GB as primary for 30 min | 1,972 + 2,056 | **0** | Swap 4,146 of 5,631 MB, no hang ([summary](../results/r9-run-summary.md)) |
+| 10 | power-off of one RAC node | Application Continuity clients | **0** | Node evicted +30 s, no failover; one client crashed in its driver ([F23](findings.md#f23), [summary](../results/r10-rac-node-summary.md)) |
 
 
 Self-built two-region Oracle high-availability / disaster-recovery lab on Linux KVM:
@@ -57,7 +61,7 @@ and broker as a SYSDG-only user. Evidence: `results/raw/r2_*`, `results/timeline
 | 5 | **Power-off prm1**, FSFO → stb1 | 0 | 72 s (stb1 primary +43 s) | **2 min 20 s**, automatic | ~65 s / 1 min 54 s | PASS |
 | 4 | **Power-off stb1**, FSFO → prm1 | 0 | 66 s (prm1 primary +44 s) | **2 min 11 s**, automatic | ~67 s / 2 min 12 s | PASS |
 
-- **1,862 committed transactions, 0 lost**; in both power-off tests the transaction committed in the very
+- **1,862 committed transactions, 0 lost** (rows counted at [step t4](../results/raw/r2_t4_failover_stb1/); the client log was restarted for t5); in both power-off tests the transaction committed in the very
   second of the power-off (#260, #681) is on both databases. Region B: 0 errors throughout.
 - FSFO auto-reinstated the old primary each time (141 s / 136 s after the VM was started again).
 - Database failover is unchanged (43–44 s); GoldenGate's restart after a failover took longer
@@ -78,7 +82,7 @@ Why: the shared lab password had been rotated (XAG, GoldenGate users and path cr
 | 5b | **Power-off prm1** again, after the fix | 0 | +52 s | +74 s | **1 min 49 s**, automatic | PASS |
 | 2 | Switchover back to prm1 | 0 | – | – | 2 min 1 s | PASS |
 
-- **2,535 committed transactions, 0 lost** across the four events; FSFO reinstated the old primary each
+- **2,535 committed transactions, 0 lost** across the four events (rows counted at [step t2](../results/raw/r3_t2_switchback/), where the client log was complete; the log was restarted for the later steps, which hold fewer rows); FSFO reinstated the old primary each
   time (80 s, 200 s, 180 s after the VM was started).
 - **The finding — my own rotation missed a dependency:** XAG keeps the GoldenGate admin password **per
   cluster**. I had updated it on the primary's cluster (prm1/prm2) but not on the standby's (stb1/stb2):
