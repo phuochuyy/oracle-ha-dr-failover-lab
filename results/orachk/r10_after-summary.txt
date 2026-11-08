@@ -1,0 +1,9 @@
+# ORAchk (AHF 25.11), primary cluster, prm1 + prm2 (prm1 and prm2 both up for run 10), root, -a -dball -usesocket. Summary extracted from the HTML report; the report itself stays on the node.
+# System health score: 91
+# Coverage: as before, OS, ASM and cluster checks: the report shows "Instances found running: 0". Warnings were not extracted this time (the row layout differs), only CRITICAL and FAIL.
+# Rows (CRITICAL, FAIL, INFO, PASS, UNDETERMINED): 2, 3, 7, 130, 1
+CRITICAL|OS Check|Verify kernel-space and user-space core dumps configuration
+FAIL|ASM Check|Check the integrity of key GI startup files
+FAIL|OS Check|Verify rngd system service
+CRITICAL|OS Check|Verify ORAchk scheduler configuration across cluster
+FAIL|OS Check|Verify Cluster health Monitor(CHM) configuration
