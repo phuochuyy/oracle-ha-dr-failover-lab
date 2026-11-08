@@ -16,3 +16,8 @@ are covered by the broker's `validate` commands ([before](../maintenance/r6-brok
 | FAIL | `rngd` service | Accepted | Package not installed and the VMs have no repository. `entropy_avail` is 256 on kernel 6.12 |
 | FAIL | Cluster Health Monitor | Accepted | `ora.crf` disabled on purpose by `labctl.sh`, about 200 MB per node |
 | WARN | Swap size, I/O scheduler, `ip_local_port_range` (65535 against 65500), bonding, jumbo frames, `compatible.rdbms`, packages, memory | Accepted | One-NIC lab VMs. `compatible.rdbms` cannot be lowered again once raised |
+
+## After run 10
+
+[`r10_after-summary.txt`](r10_after-summary.txt): score 91 again, the same 2 CRITICAL and 3 FAIL as before, no new finding. The integrity check failed again for the same reason: the local registry (OLR) backup of prm2, which is off most of the time, was older than ORAchk accepts. A manual OLR backup was taken on both nodes. It will keep coming back while prm2 stays off for days; on a real two-node cluster both nodes run and the backups are automatic.
+
