@@ -236,6 +236,8 @@ So the parameter is the cause. It does what it is for: Extract must not ship wha
 
 **Not explained:** after a real failover Extract kept shipping for about 5 minutes (until 04:16:33), then abended with `OGG-06219` 18 s after the first log switch, and its automatic restarts ran out. The controlled test did not reproduce that abend. After a failover, check Extract explicitly: `gg_heal` only runs at the end of a `labctl` scenario.
 
+**Second case, no failover:** while Database Vault was enabled on the RAC, the primary was restarted with the broker configuration disabled; EXTA abended twice with the same `OGG-06219` (capture `DISABLED`, `ORA-01013`) and started cleanly once the configuration was enabled again ([security lab, Database Vault log](https://github.com/phuochuyy/oracle-security-compliance-lab/blob/main/06-database-vault/results/region-a/enable-log.txt)). Both cases had `HANDLEDLFAILOVER` set and Data Guard protection not in its normal state; that is a lead to test, not yet a cause.
+
 My mistake that made this visible: the client of the same test hung at exit, so the standby stayed off 25 minutes instead of a few.
 
 ## F22
